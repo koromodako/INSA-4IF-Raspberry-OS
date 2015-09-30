@@ -1,0 +1,55 @@
+#include "src/syscall.h"
+
+void dummy()
+{
+	return;
+}
+
+void __attribute__((naked)) dummyNaked()
+{
+	return;
+}
+
+int div(int dividend, int divisor)
+{
+	
+	int result = 0;
+	int remainder = dividend;
+
+	while (remainder >= divisor) {
+		result++;
+		remainder -= divisor;
+	}
+	return result;
+}
+
+int compute_volume(int rad)
+{
+	int rad3 = rad * rad * rad;
+	return div(4*355*rad3, 3*113);
+}
+
+int kmain( void )
+{
+	//__asm("bl dummy");
+	
+	int radius = 5;
+	// On met radius dans r2
+	//__asm("mov r2, %0" : : "r"(radius));
+	// On met r3 dans radius
+	//__asm("mov %0, r3" : "=r"(radius));
+
+	// On change le mode en USER
+	__asm("cps #16");
+	// On change le mode en SVC
+	//__asm("cps #19");
+
+	// Appel système pour un reboot
+	sys_reboot();
+	
+	int volume;
+	dummy();
+	dummyNaked();
+	volume = compute_volume(radius);
+	return volume;
+}
