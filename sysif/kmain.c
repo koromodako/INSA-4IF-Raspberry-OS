@@ -42,7 +42,10 @@ int kmain( void )
     // Appels systemes ---------------------------------------------------------
 
     // Appel systeme pour un reboot
-    sys_nop();
+    while (1)
+    {
+        sys_nop();
+    }
     sys_reboot();
 
     //__asm("bl dummy");

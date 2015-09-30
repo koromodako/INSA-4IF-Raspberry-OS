@@ -46,7 +46,7 @@ void do_sys_nop()
 
 // SWI Handler -----------------------------------------------------------------
 
-void swi_handler()
+void __attribute__((naked)) swi_handler()
 {
     __asm("stmfd sp!, {r0-r12, lr}");
 	int syscallNumber = -1;
