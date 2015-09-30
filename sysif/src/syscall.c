@@ -48,6 +48,7 @@ void do_sys_nop()
 
 void swi_handler()
 {
+    __asm("stmfd sp!, {r0-r12, lr}");
 	int syscallNumber = -1;
 
 	// Récupération dans le registre r0 de num"ro de l'appel système
@@ -67,4 +68,6 @@ void swi_handler()
 			PANIC();
             break;
 	}
+
+    __asm("ldmfd sp!, {r0-r12, pc}^");
 }
