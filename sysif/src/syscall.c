@@ -44,6 +44,32 @@ void do_sys_nop()
     return;
 }
 
+// Appel système : settime -----------------------------------------------------
+void sys_settime(uint64_t date_ms)
+{
+    // Positionne le numéro de l'appel système dans r0 : numéro = 3
+    __asm("mov r0, #3");
+
+    // Argument date_ms dans r1
+    __asm("mov r1, %0" : : "r"(date_ms) : "r1");
+
+    // Interruption 
+    __asm("swi #0");
+}
+
+void do_sys_settime()
+{
+    int a = 0x0A;
+    int b = 0x0B;
+    int c = 0x0C;
+
+    int d = a + b * 2;
+
+    for (;c < d; ++c) 
+    {
+    }
+}
+
 // SWI Handler -----------------------------------------------------------------
 
 void __attribute__((naked)) swi_handler()
@@ -51,7 +77,7 @@ void __attribute__((naked)) swi_handler()
     __asm("stmfd sp!, {r0-r12, lr}");
 	int syscallNumber = -1;
 
-	// Récupération dans le registre r0 de num"ro de l'appel système
+	// Récupération dans le registre r0 du numero de l'appel système
 	__asm("mov %0, r0" : "=r"(syscallNumber): :"r0");
 
 	switch (syscallNumber)
@@ -62,6 +88,10 @@ void __attribute__((naked)) swi_handler()
 
         case 2:
             do_sys_nop();
+            break;
+
+        case 3:
+            do_sys_settime();
             break;
 
 		default:
