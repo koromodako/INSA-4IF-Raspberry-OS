@@ -32,3 +32,10 @@
 # Debug files
 *.dSYM/
 
+# Build dir
+sysif/build/
+
+# Other
+*.md5
+*.list
+*.map
