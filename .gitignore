@@ -39,3 +39,4 @@ sysif/build/
 *.md5
 *.list
 *.map
+*.swp
