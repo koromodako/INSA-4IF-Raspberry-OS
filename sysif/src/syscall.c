@@ -1,7 +1,8 @@
 #include "syscall.h"
 #include "util.h"
 
-void sys_reboot()
+// Appel système : reboot ------------------------------------------------------
+void sys_reboot() 
 {
 	// Positionne le numéro de l'appel système dans r0 : numéro = 1
 	__asm("mov r0, #1");
@@ -15,7 +16,6 @@ void do_sys_reboot()
 	// Reboot pour l'émulateur
 	#if defined QEMU
 		__asm("bl 0x8000");
-
 	// Reboot pour le Raspberry Pi
 	#else
 		const int PM_RSTC = 0x2010001c;
@@ -27,6 +27,24 @@ void do_sys_reboot()
 		while(1);
 	#endif
 }
+
+// Appel système : nop ---------------------------------------------------------
+
+void sys_nop()
+{
+    // Positionne le numéro de l'appel système dans r0 : numéro = 2
+    __asm("mov r0, #2");
+
+    // Interruption 
+    __asm("swi #0");
+}
+
+void do_sys_nop()
+{
+    return;
+}
+
+// SWI Handler -----------------------------------------------------------------
 
 void swi_handler()
 {
@@ -40,7 +58,13 @@ void swi_handler()
 		case 1:
 			do_sys_reboot();
 			break;
+
+        case 2:
+            do_sys_nop();
+            break;
+
 		default:
 			PANIC();
+            break;
 	}
 }
