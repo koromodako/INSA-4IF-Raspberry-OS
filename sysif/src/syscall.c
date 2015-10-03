@@ -54,11 +54,13 @@ void do_sys_nop()
 // Appel système : settime -----------------------------------------------------
 void sys_settime(uint64_t date_ms)
 {
+    // date_ms est déjà dans le registre r0 et r1
+    // or il faut libérer r0 pour le numéro de l'appel système
+    __asm("mov r2, r1");
+    __asm("mov r1, r0");
+
     // Positionne le numéro de l'appel système dans r0 : numéro = 3
     __asm("mov r0, #3");
-
-    // Argument date_ms dans r1
-    __asm("mov r1, %0" : : "r"(date_ms) : "r1");
 
     // Interruption 
     __asm("swi #0");
@@ -66,11 +68,12 @@ void sys_settime(uint64_t date_ms)
 
 void do_sys_settime()
 {
-    stack_pointer += SIZE_OF_STACK_SEG; // On passe le numéro d'appel système
-
-    // stack_pointer est maintenant sur le début du premier paramètre
-    // Comme on utilise uint64_t, la variable est sur deux segments
-    uint64_t date_ms = (uint64_t) *((uint32_t*)(stack_pointer)) << 32 | *((uint32_t*)(stack_pointer));
+    // stack_pointer est sur le numéro d'appel système
+    // date_ms est sur les deux autres segments suivants
+    // (deux segments car uint64_t en utilise deux)
+    uint32_t leastSignificantBits = *((uint32_t*)(stack_pointer + SIZE_OF_STACK_SEG));
+    uint32_t mostSignificantBits = *((uint32_t*)(stack_pointer + 2 * SIZE_OF_STACK_SEG));
+    uint64_t date_ms = (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 
     // On applique le paramètre
     set_date_ms(date_ms);
