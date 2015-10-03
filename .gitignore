@@ -40,3 +40,7 @@ sysif/build/
 *.list
 *.map
 *.swp
+
+# Project file
+sysif/.cproject
+sysif/.project
