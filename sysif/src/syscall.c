@@ -36,7 +36,6 @@ void do_sys_reboot()
 }
 
 // Appel système : nop ---------------------------------------------------------
-
 void sys_nop()
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 2
@@ -81,6 +80,39 @@ void do_sys_settime()
     return;
 }
 
+// Appel système : gettime -----------------------------------------------------
+uint64_t sys_gettime()
+{
+    // Positionne le numéro de l'appel système dans r0 : numéro = 4
+    __asm("mov r0, #4");
+
+    // Interruption 
+    __asm("swi #0");
+
+    // Il faut reconstruire date_ms avec R0 (bits de poids fort)
+    // et R1 (bits de poids faible)
+    uint32_t leastSignificantBits;
+    uint32_t mostSignificantBits;
+    __asm("mov %0, r0" : "=r"(mostSignificantBits));
+    __asm("mov %0, r1" : "=r"(leastSignificantBits));
+
+    return (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
+}
+
+void do_sys_gettime()
+{
+    // On récupère date_ms
+    uint64_t date_ms = get_date_ms();
+    
+    // stack_pointer est sur le numéro d'appel système donc R0
+    // On place alors dans le futur R0 les bits de poids fort
+    *((uint32_t*)(stack_pointer)) = (uint32_t)(date_ms >> 32);
+    // Puis dans le futur R1 les bits de poids faible
+    *((uint32_t*)(stack_pointer + SIZE_OF_STACK_SEG)) = (uint32_t)(date_ms);
+
+    return;
+}
+
 // SWI Handler -----------------------------------------------------------------
 
 void __attribute__((naked)) swi_handler()
@@ -110,6 +142,10 @@ void __attribute__((naked)) swi_handler()
         case 3:
             do_sys_settime();
             break;
+
+	case 4:
+	    do_sys_gettime();
+	    break;
 
         default:
             PANIC();

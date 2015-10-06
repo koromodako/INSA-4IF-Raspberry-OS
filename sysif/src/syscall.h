@@ -12,4 +12,7 @@ void do_sys_nop();
 void sys_settime(uint64_t date_ms);
 void do_sys_settime();
 
+uint64_t sys_gettime();
+void do_sys_settime();
+
 void swi_handler();
