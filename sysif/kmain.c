@@ -1,4 +1,5 @@
 #include "src/syscall.h"
+#include "src/sched.h"
 
 void dummy()
 {
@@ -40,6 +41,9 @@ int kmain( void )
     //__asm("cps #19");
 
     // Appels systemes ---------------------------------------------------------
+    //struct pcb_s* dest = (struct pcb_s*)malloc(sizeof(struct pcb_s));
+    //sys_yieldto();
+    //free(dest);
 
     sys_settime(0x42);
 

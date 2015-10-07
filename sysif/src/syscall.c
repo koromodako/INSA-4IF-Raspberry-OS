@@ -1,12 +1,8 @@
 #include "syscall.h"
 #include "util.h"
 #include "hw.h"
+#include "sched.h"
 #include <stdint.h>
-
-// Taille d'un élement dans la pile
-#define SIZE_OF_STACK_SEG sizeof(void*)
-
-void * stack_pointer;
 
 // Appel système : reboot ------------------------------------------------------
 void sys_reboot() 
@@ -65,7 +61,7 @@ void sys_settime(uint64_t date_ms)
     __asm("swi #0");
 }
 
-void do_sys_settime()
+void do_sys_settime(void * stack_pointer)
 {
     // stack_pointer est sur le numéro d'appel système
     // date_ms est sur les deux autres segments suivants
@@ -99,7 +95,7 @@ uint64_t sys_gettime()
     return (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 }
 
-void do_sys_gettime()
+void do_sys_gettime(void * stack_pointer)
 {
     // On récupère date_ms
     uint64_t date_ms = get_date_ms();
@@ -121,6 +117,7 @@ void __attribute__((naked)) swi_handler()
     __asm("stmfd sp!, {r0-r12, lr}");
 
     // Récupération du pointeur de pile après la sauvegarde
+    void * stack_pointer;
     __asm("mov %0, sp" : "=r"(stack_pointer));
 
     // Numéro d'appel système
@@ -140,12 +137,16 @@ void __attribute__((naked)) swi_handler()
             break;
 
         case 3:
-            do_sys_settime();
+            do_sys_settime(stack_pointer);
             break;
 
-	case 4:
-	    do_sys_gettime();
-	    break;
+        case 4:
+            do_sys_gettime(stack_pointer);
+            break;
+
+        case 5:
+            do_sys_yieldto(stack_pointer);
+            break;
 
         default:
             PANIC();
