@@ -55,8 +55,8 @@ void sys_settime(uint64_t date_ms)
 {
     // date_ms est déjà dans le registre r0 et r1
     // or il faut libérer r0 pour le numéro de l'appel système
-    __asm("mov r2, r1");
-    __asm("mov r1, r0");
+    __asm("mov r2, r1" : : : "r2", "r1", "r0");
+    __asm("mov r1, r0" : : : "r2", "r1", "r0");
 
     // Positionne le numéro de l'appel système dans r0 : numéro = 3
     __asm("mov r0, #3");
@@ -84,7 +84,7 @@ void do_sys_settime()
 uint64_t sys_gettime()
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 4
-    __asm("mov r0, #4");
+    __asm("mov r0, #4": : : "r0");
 
     // Interruption 
     __asm("swi #0");
@@ -93,8 +93,8 @@ uint64_t sys_gettime()
     // et R1 (bits de poids faible)
     uint32_t leastSignificantBits;
     uint32_t mostSignificantBits;
-    __asm("mov %0, r0" : "=r"(mostSignificantBits));
-    __asm("mov %0, r1" : "=r"(leastSignificantBits));
+    __asm("mov %0, r0" : "=r"(mostSignificantBits) : : "r0", "r1");
+    __asm("mov %0, r1" : "=r"(leastSignificantBits) : : "r0", "r1");
 
     return (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 }

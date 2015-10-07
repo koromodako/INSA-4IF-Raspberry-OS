@@ -43,6 +43,8 @@ int kmain( void )
 
     sys_settime(0x42);
 
+    sys_gettime();
+
     sys_nop();
     sys_reboot();
 
