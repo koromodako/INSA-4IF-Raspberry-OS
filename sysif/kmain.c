@@ -62,8 +62,8 @@ int kmain( void )
     p2 = &pcb2;
 
     // initialize p1 and p2
-    //p1->lr = (uint32_t) &user_process_1;
-    p1->lr = (uint32_t) 0x42;
+    p1->lr = (uint32_t) &user_process_1;
+    //p1->lr = (uint32_t) 0x42;
     p2->lr = (uint32_t) &user_process_2;
 
     __asm("cps 0x10"); // switch CPU to USER mode

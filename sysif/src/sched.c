@@ -13,10 +13,10 @@ void sched_init()
 void sys_yieldto(struct pcb_s* dest)
 {
     // On place dest dans le registre R1
-    __asm("mov r1, r0" : : : "r1", "r0");
+    __asm("mov r1, %0" : : "r"(dest) : "r1");
 
     // Positionne le numéro de l'appel système dans r0 : numéro = 5
-    __asm("mov r0, #5": : : "r0");
+    __asm("mov r0, #5": : : "r1", "r0");
 
     // Interruption
     __asm("swi #0");
@@ -33,19 +33,13 @@ void do_sys_yieldto(void * stack_pointer)
     uint32_t * sp = stack_pointer;
     for (int i = 0; i < NB_SAVED_REGISTERS; ++i)
     {
-        current_process->registres[i] = *sp;
+        current_process->registres[i] = *((uint32_t*)(sp));
+        *((uint32_t*)(sp)) = dest->registres[i];
         sp += SIZE_OF_STACK_SEG;
     }
-    current_process->lr = *sp;
-
-    // Changement de contexte
-    sp = stack_pointer;
-    for (int i = 0; i < NB_SAVED_REGISTERS; ++i)
-    {
-        *sp = dest->registres[i];
-        sp += SIZE_OF_STACK_SEG;
-    }
-    *sp = dest->lr;
+    current_process->lr = *((uint32_t*)(sp));
+    *((uint32_t*)(sp)) = dest->lr;
 
     current_process = dest;
+
 }

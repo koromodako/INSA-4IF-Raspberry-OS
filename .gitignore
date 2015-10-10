@@ -44,3 +44,4 @@ sysif/build/
 # Project file
 sysif/.cproject
 sysif/.project
+sysif/.settings
