@@ -16,6 +16,9 @@ b do_sys_reboot
 b do_sys_nop
 
 b *kmain
+b *swi_handler
+b *sys_yieldto
+b *do_sys_yieldto
 
 source utils.gdb
 

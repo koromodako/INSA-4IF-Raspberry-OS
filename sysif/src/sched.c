@@ -26,19 +26,18 @@ void do_sys_yieldto(void * stack_pointer)
 {
     // stack_pointer est sur le numéro d'appel système
     // On aura le paramètre à la position suivante
-    struct pcb_s** pointer_adr_dest = stack_pointer + SIZE_OF_STACK_SEG;
-    struct pcb_s* dest = *(pointer_adr_dest);
+    struct pcb_s* dest = *((struct pcb_s**)(stack_pointer + SIZE_OF_STACK_SEG));
 
     // Copies locales
-    uint32_t * sp = stack_pointer;
+    uint32_t * current_sp = ((uint32_t*)(stack_pointer));
     for (int i = 0; i < NB_SAVED_REGISTERS; ++i)
     {
-        current_process->registres[i] = *((uint32_t*)(sp));
-        *((uint32_t*)(sp)) = dest->registres[i];
-        sp += SIZE_OF_STACK_SEG;
+        current_process->registres[i] = *((uint32_t*)(current_sp));
+        *((uint32_t*)(current_sp)) = dest->registres[i];
+        current_sp++;
     }
-    current_process->lr = *((uint32_t*)(sp));
-    *((uint32_t*)(sp)) = dest->lr;
+    current_process->lr = *((uint32_t*)(current_sp));
+    *((uint32_t*)(current_sp)) = dest->lr;
 
     current_process = dest;
 
