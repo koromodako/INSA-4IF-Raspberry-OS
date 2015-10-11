@@ -80,3 +80,19 @@ define print_sr
        end
        printf ")\n"
 end
+
+define stack
+       dump_top_of_stack
+end
+
+define ir
+       info registers
+end
+
+define printx
+       print /x $arg0
+end
+
+define hook-quit
+       set confirm off
+end

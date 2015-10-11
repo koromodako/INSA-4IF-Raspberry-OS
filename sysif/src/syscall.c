@@ -62,13 +62,13 @@ void sys_settime(uint64_t date_ms)
     __asm("swi #0");
 }
 
-void do_sys_settime(void * stack_pointer)
+void do_sys_settime(uint32_t * stack_pointer)
 {
     // stack_pointer est sur le numéro d'appel système
     // date_ms est sur les deux autres segments suivants
     // (deux segments car uint64_t en utilise deux)
-    uint32_t leastSignificantBits = *((uint32_t*)(stack_pointer + SIZE_OF_STACK_SEG));
-    uint32_t mostSignificantBits = *((uint32_t*)(stack_pointer + 2 * SIZE_OF_STACK_SEG));
+    uint32_t leastSignificantBits = *(stack_pointer + 1);
+    uint32_t mostSignificantBits = *(stack_pointer + 2);
     uint64_t date_ms = (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 
     // On applique le paramètre
@@ -96,16 +96,16 @@ uint64_t sys_gettime()
     return (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 }
 
-void do_sys_gettime(void * stack_pointer)
+void do_sys_gettime(uint32_t * stack_pointer)
 {
     // On récupère date_ms
     uint64_t date_ms = get_date_ms();
     
     // stack_pointer est sur le numéro d'appel système donc R0
     // On place alors dans le futur R0 les bits de poids fort
-    *((uint32_t*)(stack_pointer)) = (uint32_t)(date_ms >> 32);
+    *stack_pointer = (uint32_t)(date_ms >> 32);
     // Puis dans le futur R1 les bits de poids faible
-    *((uint32_t*)(stack_pointer + SIZE_OF_STACK_SEG)) = (uint32_t)(date_ms);
+    *(stack_pointer + 1) = (uint32_t)(date_ms);
 
     return;
 }
@@ -117,8 +117,13 @@ void __attribute__((naked)) swi_handler()
     // Sauvegarde des registres et de LR
     __asm("stmfd sp!, {r0-r12, lr}");
 
+    // Sauvegarde du LR_USER
+    __asm("cps #31"); // Mode système
+    __asm("mov %0, lr": "=r"(current_process->lr_user));
+    __asm("cps #19"); // Mode SVC
+
     // Récupération du pointeur de pile après la sauvegarde
-    void * stack_pointer;
+    uint32_t * stack_pointer;
     __asm("mov %0, sp" : "=r"(stack_pointer));
 
     // Numéro d'appel système

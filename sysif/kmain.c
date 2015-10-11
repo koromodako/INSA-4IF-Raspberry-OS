@@ -54,7 +54,7 @@ int compute_volume(int rad)
     return div(4*355*rad3, 3*113);
 }
 
-int kmain( void )
+void kmain( void )
 {
     sched_init();
 
@@ -62,9 +62,8 @@ int kmain( void )
     p2 = &pcb2;
 
     // initialize p1 and p2
-    p1->lr = (uint32_t) &user_process_1;
-    //p1->lr = (uint32_t) 0x42;
-    p2->lr = (uint32_t) &user_process_2;
+    p1->lr_user = (uint32_t) &user_process_1;
+    p2->lr_user = (uint32_t) &user_process_2;
 
     __asm("cps 0x10"); // switch CPU to USER mode
 
@@ -73,40 +72,4 @@ int kmain( void )
 
     // this is now unreachable
     PANIC();
-
-    // Changements de mode -----------------------------------------------------
-
-    // On change le mode en USER
-    __asm("cps #16");
-
-    // On change le mode en SVC
-    //__asm("cps #19");
-
-    // Appels systemes ---------------------------------------------------------
-    //struct pcb_s* dest = (struct pcb_s*)malloc(sizeof(struct pcb_s));
-    //sys_yieldto();
-    //free(dest);
-
-    sys_settime(0x42);
-
-    sys_gettime();
-
-    sys_nop();
-    sys_reboot();
-
-    //__asm("bl dummy");
-
-    int radius = 5;
-
-    // On met radius dans r2
-    //__asm("mov r2, %0" : : "r"(radius));
-
-    // On met r3 dans radius
-    //__asm("mov %0, r3" : "=r"(radius));
-
-    int volume;
-    dummy();
-    dummyNaked();
-    volume = compute_volume(radius);
-    return volume;
 }

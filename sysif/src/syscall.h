@@ -1,3 +1,6 @@
+#ifndef SYSCALL_H
+#define SYSCALL_H
+
 #include <stdint.h>
 
 #define QEMU
@@ -12,9 +15,11 @@ void sys_nop();
 void do_sys_nop();
 
 void sys_settime(uint64_t date_ms);
-void do_sys_settime(void * stack_pointer);
+void do_sys_settime(uint32_t * stack_pointer);
 
 uint64_t sys_gettime();
-void do_sys_gettime(void * stack_pointer);
+void do_sys_gettime(uint32_t * stack_pointer);
 
 void swi_handler();
+
+#endif //SYSCALL_H
