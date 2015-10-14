@@ -16,13 +16,23 @@ struct pcb_s * create_process(func_t* entry)
     pcb->lr_user = entry;
 
     // Pile de 2500 uint32_t
-    pcb->sp = (uint32_t *) kAlloc(SIZE_STACK_PROCESS);
-    pcb->sp += SIZE_STACK_PROCESS;
+    pcb->sp_start = (uint32_t *) kAlloc(SIZE_STACK_PROCESS);
+    pcb->sp = pcb->sp_start + SIZE_STACK_PROCESS;
 
     // Initialisation du champ SPSR
-    pcb->cpsr = 0x600001d0; //Valeur du SPSR en mode USER
+    pcb->cpsr = 0x600001d0; // Valeur du SPSR en mode USER
+
+    // Ajout de la pcb à la liste chaînée
+    struct pcb_s * nextProc = current_process->pcb_next;
+    pcb->pcb_next = nextProc;
+    current_process->pcb_next = pcb;
 
     return pcb;
+}
+
+void elect()
+{
+    current_process = current_process->pcb_next;
 }
 
 // Appel système : yieldto -----------------------------------------------------
@@ -51,4 +61,25 @@ void do_sys_yieldto(struct pcb_s * context)
     }
 
     current_process = dest;
+}
+
+// Appel système : yield -----------------------------------------------------
+void sys_yield()
+{
+    // Positionne le numéro de l'appel système dans r0 : numéro = 5
+    __asm("mov r0, #6" : : : "r0");
+
+    // Interruption
+    __asm("swi #0");
+}
+
+void do_sys_yield(struct pcb_s * context)
+{
+    // Sauvegarde
+    for (int i = 0; i < NB_SAVED_REGISTERS; ++i)
+    {
+        current_process->registres[i] = context->registres[i];
+    }
+
+    elect();
 }

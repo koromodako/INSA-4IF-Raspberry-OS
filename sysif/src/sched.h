@@ -11,9 +11,10 @@ struct pcb_s {
     uint32_t registres[NB_SAVED_REGISTERS];
     func_t * lr_user;
     func_t * lr_svc;
+    uint32_t * sp_start;
     uint32_t * sp;
     uint32_t cpsr;
-    struct pcb_s * pcbSuivante;
+    struct pcb_s * pcb_next;
 };
 
 struct pcb_s * current_process;
@@ -23,5 +24,8 @@ void sched_init();
 void sys_yieldto(struct pcb_s* dest);
 void do_sys_yieldto(struct pcb_s * context);
 struct pcb_s * create_process(func_t* entry);
+void elect();
+void sys_yield();
+void do_sys_yield(struct pcb_s * context);
 
 #endif //SCHED_H

@@ -154,6 +154,10 @@ void __attribute__((naked)) swi_handler()
             do_sys_yieldto(context);
             break;
 
+        case 6:
+            do_sys_yield(context);
+            break;
+
         default:
             PANIC();
             break;
