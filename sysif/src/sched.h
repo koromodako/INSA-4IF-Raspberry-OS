@@ -3,11 +3,16 @@
 
 #include <stdint.h>
 #define NB_SAVED_REGISTERS 13
+#define SIZE_STACK_PROCESS 10000 // En Octet = 10Ko
+
+typedef int (func_t) (void);
 
 struct pcb_s {
     uint32_t registres[NB_SAVED_REGISTERS];
-    uint32_t lr_user;
-    uint32_t lr_svc;
+    func_t * lr_user;
+    func_t * lr_svc;
+    uint32_t * sp;
+    uint32_t cpsr_user;
 };
 
 struct pcb_s * current_process;
@@ -15,6 +20,7 @@ struct pcb_s * current_process;
 void sched_init();
 
 void sys_yieldto(struct pcb_s* dest);
-void do_sys_yieldto();
+void do_sys_yieldto(struct pcb_s * context);
+struct pcb_s * create_process(func_t* entry);
 
 #endif //SCHED_H

@@ -19,6 +19,8 @@ b *kmain
 b *swi_handler
 b *sys_yieldto
 b *do_sys_yieldto
+b *user_process_1
+b *user_process_2
 
 source utils.gdb
 

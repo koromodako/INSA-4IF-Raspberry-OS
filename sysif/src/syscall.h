@@ -2,6 +2,7 @@
 #define SYSCALL_H
 
 #include <stdint.h>
+#include "sched.h"
 
 #define QEMU
 
@@ -15,10 +16,10 @@ void sys_nop();
 void do_sys_nop();
 
 void sys_settime(uint64_t date_ms);
-void do_sys_settime(uint32_t * stack_pointer);
+void do_sys_settime(struct pcb_s * context);
 
 uint64_t sys_gettime();
-void do_sys_gettime(uint32_t * stack_pointer);
+void do_sys_gettime(struct pcb_s * context);
 
 void swi_handler();
 

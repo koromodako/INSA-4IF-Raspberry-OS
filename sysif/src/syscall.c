@@ -62,13 +62,12 @@ void sys_settime(uint64_t date_ms)
     __asm("swi #0");
 }
 
-void do_sys_settime(uint32_t * stack_pointer)
+void do_sys_settime(struct pcb_s * context)
 {
-    // stack_pointer est sur le numéro d'appel système
-    // date_ms est sur les deux autres segments suivants
+    // date_ms est dans R1 et R2
     // (deux segments car uint64_t en utilise deux)
-    uint32_t leastSignificantBits = *(stack_pointer + 1);
-    uint32_t mostSignificantBits = *(stack_pointer + 2);
+    uint32_t leastSignificantBits = context->registres[1];
+    uint32_t mostSignificantBits = context->registres[2];
     uint64_t date_ms = (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 
     // On applique le paramètre
@@ -96,16 +95,16 @@ uint64_t sys_gettime()
     return (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 }
 
-void do_sys_gettime(uint32_t * stack_pointer)
+void do_sys_gettime(struct pcb_s * context)
 {
     // On récupère date_ms
     uint64_t date_ms = get_date_ms();
     
     // stack_pointer est sur le numéro d'appel système donc R0
     // On place alors dans le futur R0 les bits de poids fort
-    *stack_pointer = (uint32_t)(date_ms >> 32);
+    context->registres[0] = (uint32_t)(date_ms >> 32);
     // Puis dans le futur R1 les bits de poids faible
-    *(stack_pointer + 1) = (uint32_t)(date_ms);
+    context->registres[1] = (uint32_t)(date_ms);
 
     return;
 }
@@ -117,20 +116,21 @@ void __attribute__((naked)) swi_handler()
     // Sauvegarde des registres et de LR
     __asm("stmfd sp!, {r0-r12, lr}");
 
-    // Sauvegarde du LR_USER
+    // On veut sauvegarder SPSR
+    __asm("mrs %0, spsr" : "=r"(current_process->cpsr_user));
+
+    // Sauvegarde du LR_USER et SP_USER
     __asm("cps #31"); // Mode système
-    __asm("mov %0, lr": "=r"(current_process->lr_user));
+    __asm("mov %0, lr" : "=r"(current_process->lr_user));
+    __asm("mov %0, sp" : "=r"(current_process->sp));
     __asm("cps #19"); // Mode SVC
 
     // Récupération du pointeur de pile après la sauvegarde
-    uint32_t * stack_pointer;
-    __asm("mov %0, sp" : "=r"(stack_pointer));
+    struct pcb_s * context;
+    __asm("mov %0, sp" : "=r"(context));
 
     // Numéro d'appel système
-    int syscallNumber = -1;
-
-    // Récupération dans le registre r0 du numero de l'appel système
-    __asm("mov %0, r0" : "=r"(syscallNumber): :"r0");
+    int syscallNumber = context->registres[0];
 
     switch (syscallNumber)
     {
@@ -143,21 +143,30 @@ void __attribute__((naked)) swi_handler()
             break;
 
         case 3:
-            do_sys_settime(stack_pointer);
+            do_sys_settime(context);
             break;
 
         case 4:
-            do_sys_gettime(stack_pointer);
+            do_sys_gettime(context);
             break;
 
         case 5:
-            do_sys_yieldto(stack_pointer);
+            do_sys_yieldto(context);
             break;
 
         default:
             PANIC();
             break;
     }
+
+    // Restauration de SP_USER (pas LR_USER car c'est toujours le même)
+    __asm("cps #31"); // Mode système
+    //__asm("mov lr, %0" : : "r"(current_process->lr_user));
+    __asm("mov sp, %0" : : "r"(current_process->sp));
+    __asm("cps #19"); // Mode SVC
+
+    // On restaure SPSR
+    __asm("msr spsr, %0" : : "r"(current_process->cpsr_user));
 
     __asm("ldmfd sp!, {r0-r12, pc}^");
 }
