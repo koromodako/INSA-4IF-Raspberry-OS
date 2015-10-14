@@ -5,15 +5,15 @@
 default:kernel_for_qemu
 
 test: 
-	./tools/run-test.sh test/kmain-reboot.c test/sys-reboot-does-reboot.gdb \
-	&& ./tools/run-test.sh test/kmain-nop-reboot.c test/sys-nop-does-return.gdb \
-	&& ./tools/run-test.sh test/kmain-settime.c test/sys-settime-passes-argument.gdb \
-	&& ./tools/run-test.sh test/kmain-gettime.c test/sys-gettime-returns-value.gdb \
-	&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-jumps-to-dest.gdb \
-	&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-preserves-locals.gdb \
-	&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-preserves-status-register.gdb \
-	&& ./tools/run-test.sh test/kmain-yield.c test/round-robin-distinct-stacks.gdb \
-	&& ./tools/run-test.sh test/kmain-yield.c test/round-robin-fairness.gdb
+	./tools/run-test.sh test/kmain-reboot.c test/sys-reboot-does-reboot.gdb > /dev/null && echo "Test 1 passed" \
+	&& ./tools/run-test.sh test/kmain-nop-reboot.c test/sys-nop-does-return.gdb > /dev/null && echo "Test 2 passed" \
+	&& ./tools/run-test.sh test/kmain-settime.c test/sys-settime-passes-argument.gdb > /dev/null && echo "Test 3 passed" \
+	&& ./tools/run-test.sh test/kmain-gettime.c test/sys-gettime-returns-value.gdb > /dev/null && echo "Test 4 passed" \
+	&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-jumps-to-dest.gdb > /dev/null && echo "Test 5 passed" \
+	&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-preserves-locals.gdb > /dev/null && echo "Test 6 passed" \
+	&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-preserves-status-register.gdb > /dev/null && echo "Test 7 passed" \
+	&& ./tools/run-test.sh test/kmain-yield.c test/round-robin-distinct-stacks.gdb > /dev/null && echo "Test 8 passed" \
+	&& ./tools/run-test.sh test/kmain-yield.c test/round-robin-fairness.gdb > /dev/null && echo "Test 9 passed"
 
 all: kernel_for_qemu kernel_for_sdcard
 

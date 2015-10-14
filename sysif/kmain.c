@@ -5,11 +5,13 @@
 
 void user_process() {
     int v = 0;
-    for (;;) {
+    while (v < 5) {
         v++;
         sys_yield();
     }
+    sys_exit(0);
 }
+
 void kmain(void) {
     sched_init();
     int i;
