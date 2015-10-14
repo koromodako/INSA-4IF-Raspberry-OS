@@ -12,7 +12,8 @@ struct pcb_s {
     func_t * lr_user;
     func_t * lr_svc;
     uint32_t * sp;
-    uint32_t cpsr_user;
+    uint32_t cpsr;
+    struct pcb_s * pcbSuivante;
 };
 
 struct pcb_s * current_process;

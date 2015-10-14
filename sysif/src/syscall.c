@@ -117,7 +117,7 @@ void __attribute__((naked)) swi_handler()
     __asm("stmfd sp!, {r0-r12, lr}");
 
     // On veut sauvegarder SPSR
-    __asm("mrs %0, spsr" : "=r"(current_process->cpsr_user));
+    __asm("mrs %0, spsr" : "=r"(current_process->cpsr));
 
     // Sauvegarde du LR_USER et SP_USER
     __asm("cps #31"); // Mode système
@@ -161,12 +161,12 @@ void __attribute__((naked)) swi_handler()
 
     // Restauration de SP_USER (pas LR_USER car c'est toujours le même)
     __asm("cps #31"); // Mode système
-    //__asm("mov lr, %0" : : "r"(current_process->lr_user));
+    __asm("mov lr, %0" : : "r"(current_process->lr_user));
     __asm("mov sp, %0" : : "r"(current_process->sp));
     __asm("cps #19"); // Mode SVC
 
     // On restaure SPSR
-    __asm("msr spsr, %0" : : "r"(current_process->cpsr_user));
+    __asm("msr spsr, %0" : : "r"(current_process->cpsr));
 
     __asm("ldmfd sp!, {r0-r12, pc}^");
 }
