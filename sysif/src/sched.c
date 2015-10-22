@@ -20,7 +20,9 @@ void sched_init()
 struct pcb_s * create_process(func_t* entry)
 {
     struct pcb_s * pcb = (struct pcb_s *) kAlloc(sizeof(struct pcb_s));
-    pcb->lr_user = entry;
+    pcb->lr_user = (func_t *) &start_current_process;
+
+    pcb->entry = entry;
 
     // Pile de 2500 uint32_t
     pcb->sp_start = (uint32_t *) kAlloc(SIZE_STACK_PROCESS);
@@ -41,12 +43,6 @@ struct pcb_s * create_process(func_t* entry)
 
 void elect()
 {
-    // On change l'état du processus courant sauf s'il termine
-    if(current_process->state != TERMINATED)
-    {
-        current_process->state = READY;
-    }
-
     // On supprime tous les processus terminés devant le processus courant
     while(current_process->pcb_next && current_process->pcb_next->state == TERMINATED) {
 
@@ -71,8 +67,15 @@ void elect()
     }
 
     // Passage au processus suivant avec changement de son l'état
+    current_process->state = READY;
     current_process = current_process->pcb_next;
     current_process->state = RUNNING;
+}
+
+void start_current_process()
+{
+    current_process->entry();
+    sys_exit(0);
 }
 
 // Appel système : yieldto -----------------------------------------------------

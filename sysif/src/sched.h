@@ -24,6 +24,7 @@ struct pcb_s {
     struct pcb_s * pcb_next;
     int state;
     int exit_code;
+    func_t * entry;
 };
 
 // Variables globales ----------------------------------------------------------
@@ -33,6 +34,7 @@ struct pcb_s * current_process;
 void sched_init();
 struct pcb_s * create_process(func_t* entry);
 void elect();
+void start_current_process();
 
 // Appel système : yieldto -----------------------------------------------------
 void sys_yieldto(struct pcb_s* dest);

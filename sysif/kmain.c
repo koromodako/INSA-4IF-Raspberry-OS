@@ -9,7 +9,6 @@ void user_process() {
         v++;
         sys_yield();
     }
-    sys_exit(0);
 }
 
 void kmain(void) {
