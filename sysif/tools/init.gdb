@@ -19,6 +19,7 @@ b *kmain
 b *swi_handler
 b *sys_yieldto
 b *do_sys_yieldto
+b *irq_handler
 
 source utils.gdb
 

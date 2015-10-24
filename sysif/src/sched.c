@@ -3,6 +3,7 @@
 #include "kheap.h"
 #include "hw.h"
 #include "util.h"
+#include "asm_tools.h"
 
 struct pcb_s kmain_process;
 
@@ -29,7 +30,7 @@ struct pcb_s * create_process(func_t* entry)
     pcb->sp = pcb->sp_start + SIZE_STACK_PROCESS + 1;
 
     // Initialisation du champ SPSR
-    pcb->cpsr = 0x600001d0; // Valeur du SPSR en mode USER
+    pcb->cpsr = 0b10000; // Valeur du SPSR en mode USER
 
     // Ajout de la pcb à la liste chaînée
     struct pcb_s * nextProc = current_process->pcb_next;
@@ -43,6 +44,12 @@ struct pcb_s * create_process(func_t* entry)
 
 void elect()
 {
+    // On change l'état du processus courant sauf s'il termine
+    if(current_process->state != TERMINATED)
+    {
+        current_process->state = READY;
+    }
+
     // On supprime tous les processus terminés devant le processus courant
     while(current_process->pcb_next && current_process->pcb_next->state == TERMINATED) {
 
@@ -67,7 +74,6 @@ void elect()
     }
 
     // Passage au processus suivant avec changement de son l'état
-    current_process->state = READY;
     current_process = current_process->pcb_next;
     current_process->state = RUNNING;
 }
@@ -155,4 +161,20 @@ void do_sys_exit(struct pcb_s * context)
     {
         context->registres[i] = current_process->registres[i];
     }
+}
+
+// IRQ Handler -----------------------------------------------------------------
+
+void __attribute__((naked)) irq_handler()
+{
+    // On replace LR_USER
+    __asm("cps #31"); // Mode système
+    __asm("sub lr, lr, #-4");
+
+    // Remise à zéro du compteur
+    set_next_tick_default();
+    ENABLE_TIMER_IRQ();
+
+    __asm("cps 0x10"); // Mode USER
+    sys_yield();
 }

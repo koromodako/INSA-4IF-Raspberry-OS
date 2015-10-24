@@ -48,4 +48,7 @@ void do_sys_yield(struct pcb_s * context);
 void sys_exit(int status);
 void do_sys_exit(struct pcb_s * context);
 
+// Handler des timer système ---------------------------------------------------
+void irq_handler();
+
 #endif //SCHED_H
