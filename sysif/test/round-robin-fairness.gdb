@@ -14,12 +14,12 @@ commands
   continue 
 end
 
-break kmain-yield.c:12
-commands
-  # this is just cosmetic
-  printf "v=%d\n", v
-  continue 
-end
+#break kmain-yield.c:12
+#commands
+#  # this is just cosmetic
+#  printf "v=%d\n", v
+#  continue 
+#end
 
 break sys_yield
 commands
