@@ -165,16 +165,16 @@ void do_sys_exit(struct pcb_s * context)
 
 // IRQ Handler -----------------------------------------------------------------
 
-void __attribute__((naked)) irq_handler()
+void irq_handler()
 {
     // On replace LR_USER
-    __asm("cps #31"); // Mode système
+    __asm("cps 0b11111"); // Mode système
     __asm("sub lr, lr, #-4");
 
     // Remise à zéro du compteur
     set_next_tick_default();
     ENABLE_TIMER_IRQ();
 
-    __asm("cps 0x10"); // Mode USER
+    __asm("cps 0b10010"); // Mode IRQ
     sys_yield();
 }
