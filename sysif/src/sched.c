@@ -165,16 +165,47 @@ void do_sys_exit(struct pcb_s * context)
 
 // IRQ Handler -----------------------------------------------------------------
 
-void irq_handler()
+void __attribute__((naked)) irq_handler()
 {
-    // On replace LR_USER
-    __asm("cps 0b11111"); // Mode système
-    __asm("sub lr, lr, #-4");
+    // Sauvegarde des registres et de LR
+    __asm("stmfd sp!, {r0-r12, lr}");
+
+    // On veut sauvegarder SPSR
+    __asm("mrs %0, spsr" : "=r"(current_process->cpsr));
+
+    // Sauvegarde du LR_USER et SP_USER
+    SWITCH_TO_SYSTEM_MODE;
+    __asm("mov %0, lr" : "=r"(current_process->lr_user));
+    __asm("mov %0, sp" : "=r"(current_process->sp));
+    SWITCH_TO_IRQ_MODE;
+
+    // Récupération du pointeur de pile après la sauvegarde
+    struct pcb_s * context;
+    __asm("mov %0, sp" : "=r"(context));
+
+    context->lr_user -= 4;
+
+    // TODO
+    // Pour moi c'est dans lr_svc qu'il faut sauvegarder mais ça plante
+    // Avec ça, ça fonctionne, pourquoi, j'en sais rien !!
+    current_process->lr_user = context->lr_user;
+
+    do_sys_yield(context);
+
+    context->lr_user = current_process->lr_user;
+
+    // Restauration de SP_USER (pas LR_USER car c'est toujours le même)
+    SWITCH_TO_SYSTEM_MODE;
+    __asm("mov lr, %0" : : "r"(current_process->lr_user));
+    __asm("mov sp, %0" : : "r"(current_process->sp));
+    SWITCH_TO_IRQ_MODE;
+
+    // On restaure SPSR
+    __asm("msr spsr, %0" : : "r"(current_process->cpsr));
 
     // Remise à zéro du compteur
     set_next_tick_default();
     ENABLE_TIMER_IRQ();
 
-    __asm("cps 0b10010"); // Mode IRQ
-    sys_yield();
+    __asm("ldmfd sp!, {r0-r12, pc}^");
 }

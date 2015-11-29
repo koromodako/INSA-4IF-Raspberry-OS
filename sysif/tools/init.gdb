@@ -20,6 +20,9 @@ b *swi_handler
 b *sys_yieldto
 b *do_sys_yieldto
 b *irq_handler
+b *user_process_1
+b *user_process_2
+b *user_process_3
 
 source utils.gdb
 
