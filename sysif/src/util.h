@@ -37,9 +37,27 @@ enum SYS_CALL_ID {
 
 // Enum for proc states
 enum PROC_STATE {
-	PROC_RUNNING = 0x01,
-	PROC_READY = 0x02,
-	PROC_TERMINATED = 0X03
+	PS_RUNNING = 0x01,
+	PS_READY = 0x02,
+	PS_TERMINATED = 0X03
 };
+
+// Nombre de niveaux de priorité
+#define PRIORITY_NB 6
+// Enum proc priority
+typedef enum {
+	PP_ROOT = 0x00,
+	PP_ULTRA_HIGH = 0x01,
+	PP_HIGH = 0x02,
+	PP_MEDIUM = 0x03,
+	PP_LOW = 0x04,
+	PP_ULTRA_LOW = 0x05
+} PROC_PRIORITY;
+
+// Enum proc sheduling policy
+typedef enum {
+	SP_QUEUE,
+	SP_PRIORITY_QUEUE
+} SCHEDULING_POLICY;
 
 #endif

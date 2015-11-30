@@ -2,6 +2,7 @@
 #define SCHED_H
 
 #include <stdint.h>
+#include "util.h"
 
 // Macros ----------------------------------------------------------------------
 #define NB_SAVED_REGISTERS 13
@@ -19,6 +20,7 @@ struct pcb_s {
     uint32_t cpsr;
     struct pcb_s * pcb_next;
     int state;
+    int priority;
     int exit_code;
     func_t * entry;
 };
@@ -28,17 +30,23 @@ struct pcb_s * current_process;
 
 // Gestion des processus -------------------------------------------------------
 /**
- *  Initialise le scheduler
+ *  Initialise les schedulers
  */
-void sched_init();
+void sched_init(SCHEDULING_POLICY schedPolicy);
+void queue_sched_init();
+void priority_queue_sched_init();
 /**
  *  Crée un nouveau processus en allouant de la mémoire pour ce dernier
  */
-struct pcb_s * create_process(func_t* entry);
+struct pcb_s * create_process(func_t* entry, PROC_PRIORITY priority);
+void queue_sched_add(struct pcb_s * newProcess);
+void priority_queue_sched_add(struct pcb_s * newProcess);
 /**
  *  Réalise l'election d'un nouveau processus
  */
 void elect();
+struct pcb_s * queue_sched_elect();
+struct pcb_s * priority_queue_sched_elect();
 /**
  *  Démarre le processus courant
  */
