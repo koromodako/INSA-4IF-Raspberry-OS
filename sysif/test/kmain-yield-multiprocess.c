@@ -25,10 +25,13 @@ void user_process_3() {
 }
 
 void kmain(void) {
-    sched_init();
-    create_process((func_t*)&user_process_1);
-    create_process((func_t*)&user_process_2);
-    create_process((func_t*)&user_process_3);
+    
+    sched_init(SP_QUEUE);
+
+    create_process((func_t*)&user_process_1, PP_MEDIUM);
+    create_process((func_t*)&user_process_2, PP_MEDIUM);
+    create_process((func_t*)&user_process_3, PP_MEDIUM);
+    
     timer_init();
     ENABLE_IRQ();
     __asm("cps 0x10");
