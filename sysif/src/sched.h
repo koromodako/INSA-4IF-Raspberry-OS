@@ -33,24 +33,64 @@ struct pcb_s * current_process;
  *  Initialise les schedulers
  */
 void sched_init(SCHEDULING_POLICY schedPolicy);
-void queue_sched_init();
-void priority_queue_sched_init();
 /**
  *  Crée un nouveau processus en allouant de la mémoire pour ce dernier
  */
 struct pcb_s * create_process(func_t* entry, PROC_PRIORITY priority);
-void queue_sched_add(struct pcb_s * newProcess);
-void priority_queue_sched_add(struct pcb_s * newProcess);
 /**
  *  Réalise l'election d'un nouveau processus
  */
-void elect();
-struct pcb_s * queue_sched_elect();
-struct pcb_s * priority_queue_sched_elect();
+void elect(void);
 /**
  *  Démarre le processus courant
  */
-void start_current_process();
+void start_current_process(void);
+// --------------------------------------------------
+// ---------------- SIMPLE QUEUE --------------------
+// --------------------------------------------------
+/**
+ *  Initialise le scheduler de type file simple
+ */
+void queue_sched_init(void);
+/**
+ *  Ajoute un processus à la file simple
+ */
+void queue_sched_add(struct pcb_s * newProcess);
+/**
+ *  Réalise l'élection d'un nouveau processus depuis la file simple
+ */
+struct pcb_s * queue_sched_elect(void);
+/**
+ *  Réalise l'élection d'un nouveau processus depuis les files de priorités
+ */
+void queue_sched_clean(void);
+/**
+ *  Teste si la fin des processus est atteinte
+ */
+void queue_sched_termination_test(void);
+// --------------------------------------------------
+// ---------------- PRIORITY QUEUES -----------------
+// --------------------------------------------------
+/**
+ *  Initialise le scheduler de type files de priorité
+ */
+void priority_queue_sched_init(void);
+/**
+ *  Ajoute un processus aux files de priorité
+ */
+void priority_queue_sched_add(struct pcb_s * newProcess);
+/**
+ *  Nettoye les processus terminés des files de priorité
+ */
+ struct pcb_s * priority_queue_sched_elect(void);
+/**
+ *  Nettoye les processus terminés de la file simple
+ */
+void priority_queue_sched_clean(void);
+/**
+ *  Teste si la fin des processus est atteinte
+ */
+void priority_queue_sched_termination_test(void);
 
 // Appel système : yieldto -----------------------------------------------------
 /**
@@ -66,7 +106,7 @@ void do_sys_yieldto(struct pcb_s * context);
 /**
  *  Appel système pour passer a un autre process (rendre la main)
  */
-void sys_yield();
+void sys_yield(void);
 /**
  *  Appel noyau pour passer a un autre process (rendre la main)
  */
@@ -86,6 +126,6 @@ void do_sys_exit(struct pcb_s * context);
 /**
  *
  */
-void irq_handler();
+void irq_handler(void);
 
 #endif //SCHED_H

@@ -29,25 +29,10 @@ void sched_init(SCHEDULING_POLICY schedPolicy)
     priority_queue_sched_init();
 }
 
-void queue_sched_init() 
-{
-    // Rien à faire
-}
-
-void priority_queue_sched_init() 
-{
-    int p;
-    for (p = 0; p < PRIORITY_NB; ++p)
-    {
-        priority_queues[p] = (struct pcb_s *) kAlloc(sizeof(struct pcb_s));
-        priority_queues[p]->pcb_next = priority_queues[p];
-    }
-}
-
 struct pcb_s * create_process(func_t* entry, PROC_PRIORITY priority)
 {
     if(priority < 0x00 || priority > PRIORITY_NB-1)
-    {   
+    {   // Valeur de priorité illégale
         PANIC();
     }
 
@@ -80,21 +65,7 @@ struct pcb_s * create_process(func_t* entry, PROC_PRIORITY priority)
     return pcb;
 }
 
-void queue_sched_add(struct pcb_s * newProcess) 
-{   // On insère le processus après le processus courant dans la liste
-    struct pcb_s * nextProc = current_process->pcb_next;
-    newProcess->pcb_next = nextProc;
-    current_process->pcb_next = newProcess;
-}
-
-void priority_queue_sched_add(struct pcb_s * newProcess) 
-{   // On insère le processus au debut de la liste de priorite
-    struct pcb_s * nextProc = priority_queues[newProcess->priority]->pcb_next;
-    newProcess->pcb_next = nextProc;
-    priority_queues[newProcess->priority]->pcb_next = newProcess;
-}
-
-void elect()
+void elect(void)
 {
     // On change l'état du processus courant sauf s'il termine
     if(current_process->state != PS_TERMINATED)
@@ -103,88 +74,171 @@ void elect()
     }
 
     // On supprime tous les processus terminés devant le processus courant
-    while(current_process->pcb_next && current_process->pcb_next->state == PS_TERMINATED) {
-
-        // Sauvegarde du pcb à détruire
-        struct pcb_s * pcbToDestroy = current_process->pcb_next;
-
-        // Suppression du pcb des structures de scheduling
-        // /!\ Cette ligne est commune aux politiques d'ordonnacement
-        current_process->pcb_next = pcbToDestroy->pcb_next;
-        // ---------------------------------------------------------
-        
-        // Destruction en deux temps car on ne peut pas prévoir comment est gérée la mémoire
-        // Destruction de la pile
-        kFree((void *)pcbToDestroy->sp_start, SIZE_STACK_PROCESS);
-        // Destruction du pcb + la pile allouée
-        kFree((void *)pcbToDestroy, sizeof(struct pcb_s));
-
-    }
-
-    // S'il n'y a plus de processus on stop le noyau
-    if (current_process->pcb_next == current_process)
-    {
-        terminate_kernel();
-    }
-
-    // Passage au processus suivant avec changement de son état
+    // Verification de terminaison de kernel puis election si nécessaire
     switch(sched_policy) {
-        case SP_QUEUE: 
+        case SP_QUEUE:
+            queue_sched_clean();
+            queue_sched_termination_test();
             current_process = queue_sched_elect();
             break;
         case SP_PRIORITY_QUEUE:
+            priority_queue_sched_clean();
+            priority_queue_sched_termination_test();
             current_process = priority_queue_sched_elect();
             break;
     }
+
     // Switch to ruuning state
     current_process->state = PS_RUNNING;
 }
 
-struct pcb_s * queue_sched_elect() 
+void start_current_process(void)
+{
+    current_process->entry();
+    sys_exit(0);
+}
+
+// ---------------------------- SIMPLE QUEUE ----------------------
+
+void queue_sched_init(void) 
+{ /* Rien à faire */ }
+
+void queue_sched_add(struct pcb_s * newProcess) 
+{   // On insère le processus après le processus courant dans la liste
+    struct pcb_s * nextProc = current_process->pcb_next;
+    newProcess->pcb_next = nextProc;
+    current_process->pcb_next = newProcess;
+}
+
+void queue_sched_clean(void) 
+{   // On tue tous les ps terminés devant le ps courant
+    while(current_process->pcb_next != current_process && 
+          current_process->pcb_next->state == PS_TERMINATED) {
+        // Sauvegarde du pcb à détruire
+        struct pcb_s * pcbToDestroy = current_process->pcb_next;
+        // Suppression du pcb des structures de scheduling
+        current_process->pcb_next = pcbToDestroy->pcb_next;
+        // Libération de la mémoire allouée au proc
+        MEM_FREE(pcbToDestroy);   
+    }
+}
+
+void queue_sched_termination_test(void)
+{   // S'il n'y a plus de processus on stoppe le noyau
+    if (current_process->pcb_next == current_process && 
+        current_process->state == PS_TERMINATED)
+    {   
+        terminate_kernel();
+    }
+}
+
+struct pcb_s * queue_sched_elect(void) 
 {
     return  current_process->pcb_next;
 }
 
-struct pcb_s * priority_queue_sched_elect()
+// ---------------------------- PRIORITY QUEUES ----------------------
+
+void priority_queue_sched_init(void) 
+{
+    // Initialisation de la sentinelle root avec kmain_process
+    priority_queues[0] = &kmain_process;
+    // Initialisation des autres sentinelles
+    int p;
+    for (p = 1; p < PRIORITY_NB; ++p)
+    {
+        priority_queues[p] = (struct pcb_s *) kAlloc(sizeof(struct pcb_s));
+        priority_queues[p]->pcb_next = priority_queues[p];
+    }
+}
+
+void priority_queue_sched_add(struct pcb_s * newProcess)
+{   // On insère le processus au debut de la liste de priorite
+    struct pcb_s * nextProc = priority_queues[newProcess->priority]->pcb_next;
+    newProcess->pcb_next = nextProc;
+    priority_queues[newProcess->priority]->pcb_next = newProcess;
+}
+
+void priority_queue_sched_clean(void) 
+{
+    int p;
+    for(p = 0; p < PRIORITY_NB; ++p)
+    {   struct pcb_s * proc = priority_queues[p];
+        while(proc->pcb_next != priority_queues[p] && 
+              proc->state == PS_TERMINATED)
+        {   
+            // Sauvegarde du pcb à détruire
+            struct pcb_s * pcbToDestroy = proc->pcb_next;
+            // Suppression du pcb des structures de scheduling
+            proc->pcb_next = pcbToDestroy->pcb_next;
+            // Libération de la mémoire allouée au proc
+            MEM_FREE(pcbToDestroy);
+        }
+    }
+}
+
+void priority_queue_sched_termination_test(void)
+{
+    int terminate = 0;
+    int p;
+    // Pour chaque priorité on vérifie que le processus suivant la sentinelle est la sentinelle elle-même 
+    for(p = 0; p < PRIORITY_NB; ++p)
+    {   
+        if(priority_queues[p]->pcb_next != priority_queues[p])
+        {   terminate = 1;
+            break;
+        }
+    }
+    if(terminate)
+    {
+        terminate_kernel();
+    }
+}
+
+// Variable globale pour l'election dans le cas de la priorité fixe
+int elect_count = 0; // initialisation
+//
+struct pcb_s * priority_queue_sched_elect(void)
 {
     // Pour chaque niveau de priorité...
     int p;
     for (p = 0; p < PRIORITY_NB; ++p)
-    {   // Si la priorité du processus est la même que la liste actuelle
-        if(current_process->priority == p)
-        {   // Si le processus est seul dans la file et non terminé 
-            if (current_process->pcb_next->pcb_next == current_process)
-            {
-                if(current_process->state != PS_TERMINATED)
-                {
-                    return current_process;    
+    {   // Si il y a un autre ps que la sentinelle dans la file 
+        if(priority_queues[p]->pcb_next != priority_queues[p])
+        {   // Si la priorité du ps est la même que la liste actuelle
+            if(current_process->priority == p)
+            {   // Si le ps est seul dans la file
+                if (current_process->pcb_next->pcb_next == current_process)
+                {   // Si le ps n'est pas terminé
+                    if(current_process->state != PS_TERMINATED)
+                    {   elect_count++; // => elect_count increment
+                        if(elect_count <= p)
+                        {   return current_process;
+                        }
+                        else
+                        {   elect_count = 0; // => elect_count reset
+                        }
+                    }
                 }
+                else // Le ps n'est pas tout seul dans la liste
+                {   elect_count = 0; // => elect_count reset
+                    if(current_process->pcb_next != priority_queues[p])
+                    {
+                        return current_process->pcb_next;
+                    }
+                    else
+                    {   // On saute la sentinelle
+                        return current_process->pcb_next->pcb_next;
+                    }
+                }   
             }
-            else // Le processus n'est pas tout seul dans la liste
-            {   
-                if(current_process->pcb_next != priority_queues[p])
-                {
-                    return current_process->pcb_next;
-                }
-                else
-                {   // On saute la sentinelle
-                    return current_process->pcb_next->pcb_next;
-                }
-            }   
-        }
-        else
-        {
-            return priority_queues[p]->pcb_next;
+            else
+            {   elect_count = 0; // => elect_count reset
+                return priority_queues[p]->pcb_next;
+            }
         }
     }
-    PANIC(); // Ce point ne doit pas être atteint
-    return NULL; 
-}
-
-void start_current_process()
-{
-    current_process->entry();
-    sys_exit(0);
+    return priority_queues[0]; // On retourne la sentinelle root qui est en réalité kmain_process
 }
 
 // Appel système : yieldto -----------------------------------------------------
@@ -262,7 +316,7 @@ void do_sys_exit(struct pcb_s * context)
 
 // IRQ Handler -----------------------------------------------------------------
 
-void __attribute__((naked)) irq_handler()
+void __attribute__((naked)) irq_handler(void)
 {
     // Sauvegarde des registres et de LR
     STACK_REGS;

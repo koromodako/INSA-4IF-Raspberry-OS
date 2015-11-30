@@ -25,14 +25,17 @@ void user_process_3() {
 }
 
 void kmain(void) {
-    sched_init(SP_QUEUE);
+    // Initialisation du scheduler
+    sched_init(SP_PRIORITY_QUEUE);
+    // Creation des processus
     create_process((func_t*)&user_process_1, PP_HIGH);
     create_process((func_t*)&user_process_2, PP_MEDIUM);
     create_process((func_t*)&user_process_3, PP_LOW);
+    // Initialisation du timer matériel pour les IRQ
     timer_init();
     ENABLE_IRQ();
-    __asm("cps 0x10");
     // switch CPU to USER mode
+    SWITCH_TO_USER_MODE;
     // **********************************************************************
     while (1) {
         sys_yield();

@@ -6,8 +6,6 @@ default:
 	@echo "Starting GDB..."
 	./run-gdb.sh
 	@echo "GDB ended !"
-	@echo "Kill qemu process..."
-	$(QEMU_PROC=$(echo $(ps -aux | grep -v grep | grep qemu-system-arm) | cut -d ' ' -f2) && kill -9 ${QEMU_PROC})
-	@echo "done !"
+	./kill-qemu.sh
 
 .PHONY: default
