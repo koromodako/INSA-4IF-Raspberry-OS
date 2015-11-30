@@ -129,6 +129,9 @@ void __attribute__((naked)) swi_handler()
     struct pcb_s * context;
     __asm("mov %0, sp" : "=r"(context));
 
+    // Sauvegarde lr_svc
+    current_process->lr_svc = context->lr_user;
+
     // Numéro d'appel système
     int syscallNumber = context->registres[0];
 
@@ -166,6 +169,9 @@ void __attribute__((naked)) swi_handler()
             PANIC();
             break;
     }
+
+    // Restauration lr_svc
+    context->lr_user = current_process->lr_svc;
 
     // Restauration de SP_USER (pas LR_USER car c'est toujours le même)
     SWITCH_TO_SYSTEM_MODE;

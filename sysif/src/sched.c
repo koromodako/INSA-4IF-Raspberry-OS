@@ -22,6 +22,7 @@ struct pcb_s * create_process(func_t* entry)
 {
     struct pcb_s * pcb = (struct pcb_s *) kAlloc(sizeof(struct pcb_s));
     pcb->lr_user = (func_t *) &start_current_process;
+    pcb->lr_svc = (func_t *) &start_current_process;
 
     pcb->entry = entry;
 
@@ -185,14 +186,13 @@ void __attribute__((naked)) irq_handler()
 
     context->lr_user -= 4;
 
-    // TODO
-    // Pour moi c'est dans lr_svc qu'il faut sauvegarder mais ça plante
-    // Avec ça, ça fonctionne, pourquoi, j'en sais rien !!
-    current_process->lr_user = context->lr_user;
+    // Sauvegarde de lr_irq dans lr_svc
+    current_process->lr_svc = context->lr_user;
 
     do_sys_yield(context);
 
-    context->lr_user = current_process->lr_user;
+    // Restauration lr_irq
+    context->lr_user = current_process->lr_svc;
 
     // Restauration de SP_USER (pas LR_USER car c'est toujours le même)
     SWITCH_TO_SYSTEM_MODE;
