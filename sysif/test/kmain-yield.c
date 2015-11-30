@@ -15,12 +15,12 @@ void user_process()
 
 void kmain( void )
 {
-    sched_init();
+    sched_init(SP_QUEUE);
 
     int i;
     for(i=0;i<NB_PROCESS;i++)
     {
-        create_process((func_t*)&user_process);
+        create_process((func_t*)&user_process, PP_MEDIUM);
     }
 
     __asm("cps 0x10"); // switch CPU to USER mode
