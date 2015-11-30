@@ -8,10 +8,7 @@
 void sys_reboot() 
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 1
-    __asm("mov r0, #1");
-
-    // Appel SWI Handler (interruption Système)
-    __asm("swi #0");
+    SWI(1);
 }
 
 void do_sys_reboot()
@@ -35,10 +32,7 @@ void do_sys_reboot()
 void sys_nop()
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 2
-    __asm("mov r0, #2");
-
-    // Interruption 
-    __asm("swi #0");
+    SWI(2);
 }
 
 void do_sys_nop()
@@ -56,10 +50,7 @@ void sys_settime(uint64_t date_ms)
     __asm("mov r1, %0" : : "r"(leastSignificantBits) : "r2", "r1", "r0");
 
     // Positionne le numéro de l'appel système dans r0 : numéro = 3
-    __asm("mov r0, #3");
-
-    // Interruption 
-    __asm("swi #0");
+    SWI(3);
 }
 
 void do_sys_settime(struct pcb_s * context)
@@ -80,10 +71,8 @@ void do_sys_settime(struct pcb_s * context)
 uint64_t sys_gettime()
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 4
-    __asm("mov r0, #4": : : "r0");
-
-    // Interruption 
-    __asm("swi #0");
+    __asm("mov r1, r0"); // On sauvegarde r0 dans r1 pour libérer l'espace pour mettre le numero de l'appel dans r0
+    SWI(4);
 
     // Il faut reconstruire date_ms avec R0 (bits de poids fort)
     // et R1 (bits de poids faible)
@@ -129,9 +118,6 @@ void __attribute__((naked)) swi_handler()
     struct pcb_s * context;
     __asm("mov %0, sp" : "=r"(context));
 
-    // Sauvegarde lr_svc
-    current_process->lr_svc = context->lr_user;
-
     // Numéro d'appel système
     int syscallNumber = context->registres[0];
 
@@ -169,9 +155,6 @@ void __attribute__((naked)) swi_handler()
             PANIC();
             break;
     }
-
-    // Restauration lr_svc
-    context->lr_user = current_process->lr_svc;
 
     // Restauration de SP_USER (pas LR_USER car c'est toujours le même)
     SWITCH_TO_SYSTEM_MODE;
