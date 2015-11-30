@@ -7,12 +7,6 @@
 // Macros ----------------------------------------------------------------------
 #define QEMU // Mode d'execution
 #define SIZE_OF_STACK_SEG sizeof(uint32_t*) // Taille d'un élement dans la pile
-#define   SWITCH_TO_USER_MODE __asm("cps 0b10000")
-#define    SWITCH_TO_FIQ_MODE __asm("cps 0b10001")
-#define    SWITCH_TO_IRQ_MODE __asm("cps 0b10010")
-#define    SWITCH_TO_SVC_MODE __asm("cps 0b10011")
-#define  SWITCH_TO_ABORT_MODE __asm("cps 0b10111")
-#define SWITCH_TO_SYSTEM_MODE __asm("cps 0b11111")
 
 // Appel système : reboot ------------------------------------------------------
 void sys_reboot();

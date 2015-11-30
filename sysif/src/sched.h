@@ -7,10 +7,6 @@
 #define NB_SAVED_REGISTERS 13
 #define SIZE_STACK_PROCESS 10000 // En Octet = 10Ko
 
-#define RUNNING 2
-#define READY 1
-#define TERMINATED 0
-
 // Types et structures ---------------------------------------------------------
 typedef int (func_t) (void);
 
