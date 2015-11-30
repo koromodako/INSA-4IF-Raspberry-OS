@@ -5,21 +5,22 @@
 default: kernel_for_qemu
 
 test: 
-	@echo   "+-----------------------------------------------------------------------"
+	@echo   "+----------------------------------------------------------------------------------"
 	@echo   "| N°: Test Description / Result"
-	@echo   "+-----------------------------------------------------------------------"
-	@printf "|  1: Reboot Does Reboot... "								&& ./tools/run-test.sh test/kmain-reboot.c test/sys-reboot-does-reboot.gdb | tail -1
-	@printf "|  2: Nop Does Return... "									&& ./tools/run-test.sh test/kmain-nop-reboot.c test/sys-nop-does-return.gdb | tail -1
-	@printf "|  3: Set Time Passes Argument ... "						&& ./tools/run-test.sh test/kmain-settime.c test/sys-settime-passes-argument.gdb | tail -1
-	@printf "|  4: Get Time Returns Value ... "							&& ./tools/run-test.sh test/kmain-gettime.c test/sys-gettime-returns-value.gdb | tail -1
-	@printf "|  5: Yield To Jump To Dest... "							&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-jumps-to-dest.gdb | tail -1
-	@printf "|  6: Yield To Preserves Locals ... "						&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-preserves-locals.gdb | tail -1
-	@printf "|  7: Yield To Preserves Status Register ... " 			&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-preserves-status-register.gdb | tail -1
-	@printf "|  8: Yield Round Robin Distinct Stacks ... " 				&& ./tools/run-test.sh test/kmain-yield-exit.c test/round-robin-distinct-stacks.gdb | tail -1
-	@printf "|  9: Yield Round Robin Fairness ... " 					&& ./tools/run-test.sh test/kmain-yield-exit.c test/round-robin-fairness.gdb | tail -1
-	@printf "| 10: Yield Round Robin Fairness Without Exit ... " 		&& ./tools/run-test.sh test/kmain-yield.c test/round-robin-fairness.gdb | tail -1
-	@printf "| 11: Yield Round Robin Distinct Stacks Without Exit ... " && ./tools/run-test.sh test/kmain-yield.c test/round-robin-distinct-stacks.gdb | tail -1
-	@echo   "+-----------------------------------------------------------------------"
+	@echo   "+----------------------------------------------------------------------------------"
+	@printf "|  1: Reboot Does Reboot... "													&& ./tools/run-test.sh test/kmain-reboot.c test/sys-reboot-does-reboot.gdb | tail -1
+	@printf "|  2: Nop Does Return... "														&& ./tools/run-test.sh test/kmain-nop-reboot.c test/sys-nop-does-return.gdb | tail -1
+	@printf "|  3: Set Time Passes Argument ... "											&& ./tools/run-test.sh test/kmain-settime.c test/sys-settime-passes-argument.gdb | tail -1
+	@printf "|  4: Get Time Returns Value ... "												&& ./tools/run-test.sh test/kmain-gettime.c test/sys-gettime-returns-value.gdb | tail -1
+	@printf "|  5: Yield To Jump To Dest... "												&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-jumps-to-dest.gdb | tail -1
+	@printf "|  6: Yield To Preserves Locals ... "											&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-preserves-locals.gdb | tail -1
+	@printf "|  7: Yield To Preserves Status Register ... " 								&& ./tools/run-test.sh test/kmain-yieldto.c test/sys-yieldto-preserves-status-register.gdb | tail -1
+	@printf "|  8: Yield Round Robin Distinct Stacks ... " 									&& ./tools/run-test.sh test/kmain-yield-exit.c test/round-robin-distinct-stacks.gdb | tail -1
+	@printf "|  9: Yield Round Robin Fairness ... " 										&& ./tools/run-test.sh test/kmain-yield-exit.c test/round-robin-fairness.gdb | tail -1
+	@printf "| 10: Yield Round Robin Fairness Without Exit ... " 							&& ./tools/run-test.sh test/kmain-yield.c test/round-robin-fairness.gdb | tail -1
+	@printf "| 11: Yield Round Robin Distinct Stacks Without Exit ... "						&& ./tools/run-test.sh test/kmain-yield.c test/round-robin-distinct-stacks.gdb | tail -1
+	@printf "| 12: Yield Stack Scheduling With Time Interruption (it's a long test) ... "	&& ./tools/run-test.sh test/kmain-yield-multiprocess.c test/stack-scheduling-time-interruption.gdb | tail -1
+	@echo   "+----------------------------------------------------------------------------------"
 
 all: kernel_for_qemu kernel_for_sdcard
 
