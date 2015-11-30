@@ -179,13 +179,13 @@ void priority_queue_sched_clean(void)
 
 void priority_queue_sched_termination_test(void)
 {
-    int terminate = 0;
+    int terminate = 1;
     int p;
     // Pour chaque priorité on vérifie que le processus suivant la sentinelle est la sentinelle elle-même 
     for(p = 0; p < PRIORITY_NB; ++p)
-    {   
+    {   // On interdit la terminaison dès qu'on trouve une liste non vide
         if(priority_queues[p]->pcb_next != priority_queues[p])
-        {   terminate = 1;
+        {   terminate = 0;
             break;
         }
     }
@@ -212,7 +212,7 @@ struct pcb_s * priority_queue_sched_elect(void)
                 {   // Si le ps n'est pas terminé
                     if(current_process->state != PS_TERMINATED)
                     {   elect_count++; // => elect_count increment
-                        if(elect_count <= p)
+                        if(elect_count <= PRIORITY_NB-p)
                         {   return current_process;
                         }
                         else
