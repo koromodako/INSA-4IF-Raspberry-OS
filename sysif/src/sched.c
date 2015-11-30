@@ -60,10 +60,10 @@ void elect()
         // Suppression du pcb de la liste
         current_process->pcb_next = pcbToDestroy->pcb_next;
 
+        // Destruction en deux temps car on ne peut pas prévoir comment est gérée la mémoire
         // Destruction de la pile
         kFree((void *)pcbToDestroy->sp_start, SIZE_STACK_PROCESS);
-
-        // Destruction du pcb
+        // Destruction du pcb + la pile allouée
         kFree((void *)pcbToDestroy, sizeof(struct pcb_s));
 
     }

@@ -27,24 +27,57 @@ struct pcb_s {
 struct pcb_s * current_process;
 
 // Gestion des processus -------------------------------------------------------
+/**
+ *  Initialise le scheduler
+ */
 void sched_init();
+/**
+ *  Crée un nouveau processus en allouant de la mémoire pour ce dernier
+ */
 struct pcb_s * create_process(func_t* entry);
+/**
+ *  Réalise l'election d'un nouveau processus
+ */
 void elect();
+/**
+ *  Démarre le processus courant
+ */
 void start_current_process();
 
 // Appel système : yieldto -----------------------------------------------------
+/**
+ *  Appel système pour passer a un autre process si on connait l'adresse de son PCB
+ */
 void sys_yieldto(struct pcb_s* dest);
+/**
+ * Appel noyau pour passer a un autre process si on connait l'adresse de son PCB 
+ */
 void do_sys_yieldto(struct pcb_s * context);
 
 // Appel système : yield -------------------------------------------------------
+/**
+ *  Appel système pour passer a un autre process (rendre la main)
+ */
 void sys_yield();
+/**
+ *  Appel noyau pour passer a un autre process (rendre la main)
+ */
 void do_sys_yield(struct pcb_s * context);
 
 // Appel système : exit --------------------------------------------------------
+/**
+ *  Appel système pour terminer un processus
+ */
 void sys_exit(int status);
+/**
+ *  Appel noyau pour terminer un processus
+ */
 void do_sys_exit(struct pcb_s * context);
 
 // Handler des timer système ---------------------------------------------------
+/**
+ *
+ */
 void irq_handler();
 
 #endif //SCHED_H
