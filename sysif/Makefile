@@ -2,7 +2,7 @@
 # 4IF SEA "SysIF" Makefile
 #############################################################################
 
-default:kernel_for_qemu
+default: kernel_for_qemu
 
 test: 
 	@echo   "+-----------------------------------------------------------------------"
@@ -83,7 +83,10 @@ build/kernel.img: build/kernel.elf
 build/kernel.list: build/kernel.elf
 	arm-none-eabi-objdump -d -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
 
+launch:
+	make -C tools/
+
 # nettoyage: effacer tous les fichiers générés
-.PHONY:clean test
+.PHONY:clean test launch
 clean:
 	rm -rf build

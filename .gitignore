@@ -41,6 +41,9 @@ sysif/build/
 *.map
 *.swp
 
+# Log files
+*.log
+
 # Project file
 sysif/.cproject
 sysif/.project
