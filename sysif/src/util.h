@@ -24,6 +24,12 @@ void kernel_panic(char* string, int number);
 #define SWITCH_TO_ABORT_MODE __asm("cps 0b10111")
 #define SWITCH_TO_SYSTEM_MODE __asm("cps 0b11111")
 
+// Macros for freeing memory space
+// <!> Destruction en deux temps car on ne peut pas prévoir comment est gérée la mémoire  
+#define MEM_FREE(pcb) \
+	kFree((void *)pcbToDestroy->sp_start, SIZE_STACK_PROCESS); \
+	kFree((void *)pcbToDestroy, sizeof(struct pcb_s))
+
 // Enum for syscall ids
 enum SYS_CALL_ID {
 	SCI_REBOOT = 0x01,
