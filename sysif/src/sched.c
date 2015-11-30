@@ -92,10 +92,7 @@ void sys_yieldto(struct pcb_s* dest)
     __asm("mov r1, r0");
 
     // Positionne le numéro de l'appel système dans r0 : numéro = 5
-    __asm("mov r0, #5": : : "r1", "r0");
-
-    // Interruption
-    __asm("swi #0");
+    SWI(5);
 }
 
 void do_sys_yieldto(struct pcb_s * context)
@@ -117,10 +114,7 @@ void do_sys_yieldto(struct pcb_s * context)
 void sys_yield()
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 6
-    __asm("mov r0, #6" : : : "r0");
-
-    // Interruption
-    __asm("swi #0");
+    SWI(6);
 }
 
 void do_sys_yield(struct pcb_s * context)
@@ -147,7 +141,7 @@ void sys_exit(int status)
     __asm("mov r1, r0");
 
     // Positionne le numéro de l'appel système dans r0 : numéro = 7
-    __asm("mov r0, #7": : : "r1", "r0");
+    SWI(7);
 }
 
 void do_sys_exit(struct pcb_s * context)
