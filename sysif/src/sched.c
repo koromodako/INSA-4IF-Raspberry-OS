@@ -13,7 +13,7 @@ void sched_init()
     kheap_init();
 
     // Initialisation du premier processus
-    kmain_process.state = RUNNING;
+    kmain_process.state = PROC_RUNNING;
     current_process = &kmain_process;
     current_process->pcb_next = &kmain_process;
 }
@@ -38,7 +38,7 @@ struct pcb_s * create_process(func_t* entry)
     pcb->pcb_next = nextProc;
     current_process->pcb_next = pcb;
 
-    pcb->state = READY;
+    pcb->state = PROC_READY;
 
     return pcb;
 }
@@ -46,13 +46,13 @@ struct pcb_s * create_process(func_t* entry)
 void elect()
 {
     // On change l'état du processus courant sauf s'il termine
-    if(current_process->state != TERMINATED)
+    if(current_process->state != PROC_TERMINATED)
     {
-        current_process->state = READY;
+        current_process->state = PROC_READY;
     }
 
     // On supprime tous les processus terminés devant le processus courant
-    while(current_process->pcb_next && current_process->pcb_next->state == TERMINATED) {
+    while(current_process->pcb_next && current_process->pcb_next->state == PROC_TERMINATED) {
 
         // Sauvegarde du pcb à détruire
         struct pcb_s * pcbToDestroy = current_process->pcb_next;
@@ -76,7 +76,7 @@ void elect()
 
     // Passage au processus suivant avec changement de son l'état
     current_process = current_process->pcb_next;
-    current_process->state = RUNNING;
+    current_process->state = PROC_RUNNING;
 }
 
 void start_current_process()
@@ -92,7 +92,7 @@ void sys_yieldto(struct pcb_s* dest)
     __asm("mov r1, r0");
 
     // Positionne le numéro de l'appel système dans r0 : numéro = 5
-    SWI(5);
+    SWI(SCI_YIELDTO);
 }
 
 void do_sys_yieldto(struct pcb_s * context)
@@ -114,7 +114,7 @@ void do_sys_yieldto(struct pcb_s * context)
 void sys_yield()
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 6
-    SWI(6);
+    SWI(SCI_YIELD);
 }
 
 void do_sys_yield(struct pcb_s * context)
@@ -141,12 +141,12 @@ void sys_exit(int status)
     __asm("mov r1, r0");
 
     // Positionne le numéro de l'appel système dans r0 : numéro = 7
-    SWI(7);
+    SWI(SCI_EXIT);
 }
 
 void do_sys_exit(struct pcb_s * context)
 {
-    current_process->state = TERMINATED;
+    current_process->state = PROC_TERMINATED;
     current_process->exit_code = context->registres[1];
 
     elect();
@@ -163,7 +163,7 @@ void do_sys_exit(struct pcb_s * context)
 void __attribute__((naked)) irq_handler()
 {
     // Sauvegarde des registres et de LR
-    __asm("stmfd sp!, {r0-r12, lr}");
+    STACK_REGS;
 
     // On veut sauvegarder SPSR
     __asm("mrs %0, spsr" : "=r"(current_process->cpsr));
@@ -201,5 +201,5 @@ void __attribute__((naked)) irq_handler()
     set_next_tick_default();
     ENABLE_TIMER_IRQ();
 
-    __asm("ldmfd sp!, {r0-r12, pc}^");
+    UNSTACK_REGS;
 }

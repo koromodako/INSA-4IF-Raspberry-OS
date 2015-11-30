@@ -8,7 +8,7 @@
 void sys_reboot() 
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 1
-    SWI(1);
+    SWI(SCI_REBOOT);
 }
 
 void do_sys_reboot()
@@ -22,8 +22,8 @@ void do_sys_reboot()
         const int PM_WDOG = 0x20100024;
         const int PM_PASSWORD = 0x5a000000;
         const int PM_RSTC_WRCFG_FULL_RESET = 0x00000020;
-        PUT32(PM_WDOG, PM_PASSWORD | 1);
-        PUT32(PM_RSTC, PM_PASSWORD | PM_RSTC_WRCFG_FULL_RESET);
+        Set32(PM_WDOG, PM_PASSWORD | 1);
+        Set32(PM_RSTC, PM_PASSWORD | PM_RSTC_WRCFG_FULL_RESET);
         while(1);
     #endif
 }
@@ -32,7 +32,7 @@ void do_sys_reboot()
 void sys_nop()
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 2
-    SWI(2);
+    SWI(SCI_NOP);
 }
 
 void do_sys_nop()
@@ -50,7 +50,7 @@ void sys_settime(uint64_t date_ms)
     __asm("mov r1, %0" : : "r"(leastSignificantBits) : "r2", "r1", "r0");
 
     // Positionne le numéro de l'appel système dans r0 : numéro = 3
-    SWI(3);
+    SWI(SCI_SETTIME);
 }
 
 void do_sys_settime(struct pcb_s * context)
@@ -72,7 +72,7 @@ uint64_t sys_gettime()
 {
     // Positionne le numéro de l'appel système dans r0 : numéro = 4
     __asm("mov r1, r0"); // On sauvegarde r0 dans r1 pour libérer l'espace pour mettre le numero de l'appel dans r0
-    SWI(4);
+    SWI(SCI_GETTIME);
 
     // Il faut reconstruire date_ms avec R0 (bits de poids fort)
     // et R1 (bits de poids faible)
@@ -103,7 +103,7 @@ void do_sys_gettime(struct pcb_s * context)
 void __attribute__((naked)) swi_handler()
 {
     // Sauvegarde des registres et de LR
-    __asm("stmfd sp!, {r0-r12, lr}");
+    STACK_REGS;
 
     // On veut sauvegarder SPSR
     __asm("mrs %0, spsr" : "=r"(current_process->cpsr));
@@ -119,41 +119,18 @@ void __attribute__((naked)) swi_handler()
     __asm("mov %0, sp" : "=r"(context));
 
     // Numéro d'appel système
-    int syscallNumber = context->registres[0];
+    int syscallId = context->registres[0];
 
-    switch (syscallNumber)
+    switch (syscallId)
     {
-        case 1:
-            do_sys_reboot();
-            break;
-
-        case 2:
-            do_sys_nop();
-            break;
-
-        case 3:
-            do_sys_settime(context);
-            break;
-
-        case 4:
-            do_sys_gettime(context);
-            break;
-
-        case 5:
-            do_sys_yieldto(context);
-            break;
-
-        case 6:
-            do_sys_yield(context);
-            break;
-
-        case 7:
-            do_sys_exit(context);
-            break;
-
-        default:
-            PANIC();
-            break;
+        case SCI_REBOOT: do_sys_reboot(); break;
+        case SCI_NOP: do_sys_nop(); break;
+        case SCI_SETTIME: do_sys_settime(context); break;
+        case SCI_GETTIME: do_sys_gettime(context); break;
+        case SCI_YIELDTO: do_sys_yieldto(context); break;
+        case SCI_YIELD: do_sys_yield(context); break;
+        case SCI_EXIT: do_sys_exit(context); break;
+        default: PANIC(); break;
     }
 
     // Restauration de SP_USER (pas LR_USER car c'est toujours le même)
@@ -165,5 +142,5 @@ void __attribute__((naked)) swi_handler()
     // On restaure SPSR
     __asm("msr spsr, %0" : : "r"(current_process->cpsr));
 
-    __asm("ldmfd sp!, {r0-r12, pc}^");
+    UNSTACK_REGS;
 }
