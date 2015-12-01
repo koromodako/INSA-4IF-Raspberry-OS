@@ -141,3 +141,23 @@ Les registres sont sauvegardés dans la pile SVC.
 #### Q4-16)
 
 Les variables locales ont été ecrasées.
+
+#### Q9-2)
+
+TODO : faire un tableau un jour...
+
+Champ de bit 0bxxxxxxxxxxxxxxxxxxxx0 1 0 001 11 0 0 1 1
+                                   n S A TEX AP C B   N
+                                   G   P              X
+                                       X
+
+#### Q9-3)
+
+uint32_t device_flags = 0b010000110111;
+
+#### Q9-4)
+
+Demander demain
+
+#### Q9-5)
+
