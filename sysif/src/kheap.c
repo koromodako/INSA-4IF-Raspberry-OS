@@ -144,6 +144,14 @@ kAlloc(unsigned int size)
 	return ((uint8_t *) cfl);
 }
 
+/**
+ *	Cette fonction libère un bloc de size octets à partir de 
+ *  l'adresse ptr
+ *	@param ptr
+ *		Adresse de départ du bloc à libérer
+ *	@param size
+ *		Taille du bloc à libérer en octets
+ */
 void
 kFree(uint8_t* ptr, unsigned int size)
 {
@@ -154,6 +162,9 @@ kFree(uint8_t* ptr, unsigned int size)
 	freelist = cfl;
 }
 
+/**
+ * 	Cette fonction initialise les adresses de référence du tas
+ */
 void
 kheap_init()
 {
