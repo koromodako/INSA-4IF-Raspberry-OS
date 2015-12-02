@@ -2,20 +2,43 @@
 #include "kheap.h"
 
 
+// Structure de file simple
 struct fl {
 	struct fl	*next;
 	unsigned int	size;
 } *freelist = (struct fl *) 0;
 
+// Deux constantes définissant le haut du tas et la limite du tas
 uint8_t* kernel_heap_top;
 uint8_t* kernel_heap_limit;
 
+/**
+ * 	Retourne une addr ...
+ *	@param addr
+ * 		Valeur d'adresse
+ *  @param pwr_of_2
+ *		X dans 2^X
+ */
 unsigned int
 aligned_value(unsigned int addr, unsigned int pwr_of_2)
 {    
+	// On décale 1 de power_of_2 bits vers la gauche
+	// ex : si addr = 0b01101 et pwr_of_2 = 4 
     unsigned int modulo = (1 << pwr_of_2);
+    // ex : alors modulo = 0b011010000 
+    // On soustrait 1 à la valeur précédente
     unsigned int max_value_modulo = modulo - 1;
+    // ex : alors max_value_modulo =  0b001100111
+    // On retourne l'adresse donnée en parametre a laquelle on 
+    // additionne la valeur du max du module et on applique un 
+    // filtre pour mettre à zéro les power_of_2 - 1 bits de 
+    // poids faible 
     return (addr + max_value_modulo) & ~max_value_modulo;
+    // ex :   0b000001101 
+    //		+ 0b001100111
+    //		= 0b001110100
+    //		& 0b110011000
+    //		= 0b000010000
 }
 
 uint8_t*
