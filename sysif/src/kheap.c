@@ -41,6 +41,13 @@ aligned_value(unsigned int addr, unsigned int pwr_of_2)
     //		= 0b000010000
 }
 
+/**
+ *
+ *	@param size
+ *		
+ *	@param pwr_of_2
+ *		
+ */
 uint8_t*
 kAlloc_aligned(unsigned int size, unsigned int pwr_of_2)
 {
@@ -95,6 +102,12 @@ kAlloc_aligned(unsigned int size, unsigned int pwr_of_2)
 	return ((uint8_t *) aligned_cfl);
 }
 
+/**
+ *	Cette fonction alloue un bloc de size octets et 
+ *	retourne l'adresse de départ de ce bloc 
+ *	@param size
+ *		Taille du bloc de mémoire allouée en octet
+ */
 uint8_t*
 kAlloc(unsigned int size)
 {
