@@ -144,12 +144,11 @@ Les variables locales ont été ecrasées.
 
 #### Q9-2)
 
-TODO : faire un tableau un jour...
+Champ de bit 0bxxxxxxxxxxxxxxxxxxxx0 1 0 001 11 0 0 1
 
-Champ de bit 0bxxxxxxxxxxxxxxxxxxxx0 1 0 001 11 0 0 1 1
-                                   n S A TEX AP C B   N
-                                   G   P              X
-                                       X
+| nG | SP | A | TEX | AP | C | B |   | NX |
+|:-- |:-- |:- |:--- |:-- |:- |:- |:- |:-- |
+| 0  | 1  | 0 | 001 | 11 | 0 | 0 | 1 | 1  |
 
 #### Q9-3)
 
@@ -157,7 +156,9 @@ uint32_t device_flags = 0b010000110111;
 
 #### Q9-4)
 
-Demander demain
+Power_of_two : est le nombre de bit qui sont mis à zéro sur la droite (poinds faible), utile pour mettre tous les bits des flags à zéro.
+
+Size
 
 #### Q9-5)
 
