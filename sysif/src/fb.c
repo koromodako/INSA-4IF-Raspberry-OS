@@ -1,12 +1,12 @@
-#include "types.h"
+#include <stdint.h>
 #include "fb.h"
 
 /*
  * Adresse du framebuffer, taille en byte, résolution de l'écran, pitch et depth (couleurs)
  */
-static uint32 fb_address;
-static uint32 fb_size_bytes;
-static uint32 fb_x,fb_y,pitch,depth;
+static uint32_t fb_address;
+static uint32_t fb_size_bytes;
+static uint32_t fb_x,fb_y,pitch,depth;
 
 /*
  * Fonction pour lire et écrire dans les mailboxs
@@ -15,9 +15,9 @@ static uint32 fb_x,fb_y,pitch,depth;
 /*
  * Fonction permettant d'écrire un message dans un canal de mailbox
  */
-void MailboxWrite(uint32 message, uint32 mailbox)
+void MailboxWrite(uint32_t message, uint32_t mailbox)
 {
-  uint32 status;
+  uint32_t status;
   
   if(mailbox > 10)            // Il y a que 10 mailbox (0-9) sur raspberry pi
     return;
@@ -44,9 +44,9 @@ void MailboxWrite(uint32 message, uint32 mailbox)
 /*
  * Fonction permettant de lire un message et le retourner depuis un canal de mailbox
  */
-uint32 MailboxRead(uint32 mailbox)
+uint32_t MailboxRead(uint32_t mailbox)
 {
-  uint32 status;
+  uint32_t status;
   
   if(mailbox > 10)             // Il y a que 10 mailbox (0-9) sur raspberry pi
     return 0;
@@ -75,7 +75,7 @@ uint32 MailboxRead(uint32 mailbox)
 
 int FramebufferInitialize() {
   
-  uint32 retval=0;
+  uint32_t retval=0;
   volatile unsigned int mb[100] __attribute__ ((aligned(16)));
   
   depth = 24;
@@ -92,7 +92,7 @@ int FramebufferInitialize() {
   mb[6] = 0;			// Hauteur
   mb[7] = 0;			// Marqueur de fin
   
-  MailboxWrite((uint32)(mb+0x40000000), 8); // On écrit le message dans la mailbox
+  MailboxWrite((uint32_t)(mb+0x40000000), 8); // On écrit le message dans la mailbox
   
   if(((retval = MailboxRead(8)) == 0) || (mb[1] != 0x80000000)){ // On vérifie que le message est passé
     return 0;
@@ -101,7 +101,7 @@ int FramebufferInitialize() {
   fb_x = mb[5]; // On récupére la largeur en pixel de l'écran
   fb_y = mb[6]; // On récupére la hauteur en pixel de l'écran
   
-  uint32 mb_pos=1;
+  uint32_t mb_pos=1;
   
   mb[mb_pos++] = 0;			// C'est une requête
   mb[mb_pos++] = 0x00048003;	// On définit la hauteur et la largeur du framebuffer
@@ -130,7 +130,7 @@ int FramebufferInitialize() {
   mb[mb_pos++] = 0;			// Tag de fin de message
   mb[0] = mb_pos*4;			// Taille du message dans son entier
   
-  MailboxWrite((uint32)(mb+0x40000000), 8); // On écrit dans la mailbox
+  MailboxWrite((uint32_t)(mb+0x40000000), 8); // On écrit dans la mailbox
   
   if(((retval = MailboxRead(8)) == 0) || (mb[1] != 0x80000000)){ // On vérifie que le message a bien été passé
     return 0;
@@ -177,7 +177,7 @@ int FramebufferInitialize() {
   mb[6] = 0;			// Tag de fin de message
   mb[7] = 0;
   
-  MailboxWrite((uint32)(mb+0x40000000), 8);
+  MailboxWrite((uint32_t)(mb+0x40000000), 8);
   
   if(((retval = MailboxRead(8)) == 0) || (mb[1] != 0x80000000)){
     return 0;
@@ -194,24 +194,24 @@ int FramebufferInitialize() {
 /*
  * Fonction permettant de dessiner un pixel à l'adresse x,y avec la couleur rgb red.green.blue
  */
-void put_pixel_RGB24(uint32 x, uint32 y, uint8 red, uint8 green, uint8 blue)
+void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t blue)
 {
-	volatile uint32 *ptr=0;
-	uint32 offset=0;
+	volatile uint32_t *ptr=0;
+	uint32_t offset=0;
 
 	offset = (y * pitch) + (x * 3);
-	ptr = (uint32*)(fb_address + offset);
-	*((uint8*)ptr) = red;
-	*((uint8*)(ptr+1)) = green;
-	*((uint8*)(ptr+2)) = blue;
+	ptr = (uint32_t*)(fb_address + offset);
+	*((uint8_t*)ptr) = red;
+	*((uint8_t*)(ptr+1)) = green;
+	*((uint8_t*)(ptr+2)) = blue;
 }
 
 /*
  * Dessine sur tous les pixels des couleurs différentes
  */
 void draw() {
-  uint8 red=0,green=0,blue=0;
-  uint32 x=0, y=0;
+  uint8_t red=0,green=0,blue=0;
+  uint32_t x=0, y=0;
   for (x = 0; x < fb_x; x++) {
     for (y = 0; y < fb_y; y++) {
       if (blue > 254) {
@@ -234,7 +234,7 @@ void draw() {
  * Rempli l'écran de rouge
  */
 void drawRed() {
-  uint32 x=0, y=0;
+  uint32_t x=0, y=0;
   for (x = 0; x < fb_x; x++) {
     for (y = 0; y < fb_y; y++) {
       put_pixel_RGB24(x,y,255,0,0);
@@ -246,10 +246,22 @@ void drawRed() {
  * Rempli l'écran de blanc
  */
 void drawBlue() {
-  uint32 x=0, y=0;
+  uint32_t x=0, y=0;
   for (x = 0; x < fb_x; x++) {
     for (y = 0; y < fb_y; y++) {
       put_pixel_RGB24(x,y,0,0,255);
     }
   }
+}
+
+
+void drawSomething() {
+    put_pixel_RGB24(10,10,255,255,255);
+    put_pixel_RGB24(11,10,255,255,255);
+    put_pixel_RGB24(10,11,255,255,255);
+    put_pixel_RGB24(11,11,255,255,255);
+}
+
+void drawLetter(char letter) {
+    //TODO
 }
