@@ -17,8 +17,8 @@ extern "C"
 #endif
 
 
-#include <usbd/device.h>
-#include <types.h>
+#include "../../usbd/device.h"
+#include "../../types.h"
 
 /** 
 	\brief The current state of keyboard modifier keys.

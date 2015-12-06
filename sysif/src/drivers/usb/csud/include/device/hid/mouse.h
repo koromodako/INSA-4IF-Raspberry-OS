@@ -16,8 +16,8 @@ extern "C"
 {
 #endif
 
-#include <usbd/device.h>
-#include <types.h>
+#include "../../usbd/device.h"
+#include "../../types.h"
 
 /** The DeviceDriver field in UsbDriverDataHeader for mouse devices. */
 #define DeviceDriverMouse 0x4B424431

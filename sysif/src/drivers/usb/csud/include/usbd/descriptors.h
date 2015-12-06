@@ -16,7 +16,7 @@ extern "C"
 {
 #endif
 
-#include <types.h>
+#include "../types.h"
 
 /**
 	\brief The descriptor type field from the header of USB descriptors.

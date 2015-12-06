@@ -18,10 +18,10 @@ extern "C"
 {
 #endif
 
-#include <types.h>
-#include <usbd/device.h>
-#include <usbd/devicerequest.h>
-#include <usbd/pipe.h>
+#include "../types.h"
+#include "device.h"
+#include "devicerequest.h"
+#include "pipe.h"
 
 /**
 	\brief Performs all necessary operationg to start the USB driver.

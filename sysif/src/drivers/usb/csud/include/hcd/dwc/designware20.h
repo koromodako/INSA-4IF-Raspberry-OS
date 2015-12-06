@@ -18,7 +18,7 @@ extern "C"
 {
 #endif
 
-#include <platform/platform.h>
+#include "../../platform/platform.h"
 
 #ifdef HCD_DESIGNWARE_20
 
