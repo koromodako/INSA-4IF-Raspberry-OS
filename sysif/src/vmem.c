@@ -1,5 +1,6 @@
 #include "vmem.h"
 #include "kheap.h"
+#include "asm_tools.h"
 
 
 unsigned int init_kern_translation_table(void) {
@@ -119,7 +120,7 @@ void vmem_init(void) {
     // Configuration de la MMU
     configure_mmu_C(translation_base);
     // Activation des interruptions et data aborts
-
+    ENABLE_AB();
     // Démarrage de la MMU
     start_mmu_C();
 }
