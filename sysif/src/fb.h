@@ -56,8 +56,8 @@ void drawRed();
 
 void drawBlue();
 
-void drawSomething();
-
 void drawLetter(char letter);
+
+void drawLetters(char * letters);
 
 #endif

@@ -5,22 +5,7 @@
 #include "fb.h"
 
 void user_process_1() {
-    while(1) {
-        //drawRed();
-    }
-}
-
-void user_process_2() {
-    while(1) {
-        //drawBlue();
-    }
-}
-
-void user_process_3() {
-    while(1) {
-        //draw();
-        drawSomething();
-    }
+    drawLetters("Hello World !\nVoici la première phrase de notre Raspberry OS par Blehhhhxanome !\n~SWAG~");
 }
 
 void kmain(void) {
@@ -32,8 +17,6 @@ void kmain(void) {
 
     // Creation des processus
     create_process((func_t*)&user_process_1, PP_HIGH);
-    create_process((func_t*)&user_process_2, PP_HIGH);
-    create_process((func_t*)&user_process_3, PP_HIGH);
     // Initialisation du timer matériel pour les IRQ
     timer_init();
     ENABLE_IRQ();
