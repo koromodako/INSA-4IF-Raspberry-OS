@@ -84,7 +84,3 @@ fiq_asm_handler:
 
 data_asm_handler:
 	b data_asm_handler
-
-.align 4
-font:
-    .incbin "font.bin"

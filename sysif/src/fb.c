@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "fb.h"
+#include "font.h"
 
 /*
  * Adresse du framebuffer, taille en byte, résolution de l'écran, pitch et depth (couleurs)
@@ -7,6 +8,10 @@
 static uint32_t fb_address;
 static uint32_t fb_size_bytes;
 static uint32_t fb_x,fb_y,pitch,depth;
+
+static FontTable* font;
+static int cursor_x;
+static int cursor_y;
 
 /*
  * Fonction pour lire et écrire dans les mailboxs
@@ -188,6 +193,9 @@ int FramebufferInitialize() {
   fb_x--;
   fb_y--;
   
+  font = initFont();
+  cursor_x = 0;
+  cursor_y = 0;
   return 1;
 }
 
@@ -254,14 +262,51 @@ void drawBlue() {
   }
 }
 
+void moveCursorForLetter() {
+    cursor_x += FONT_WIDTH + LETTER_SPACING; // Letter spacing
 
-void drawSomething() {
-    put_pixel_RGB24(10,10,255,255,255);
-    put_pixel_RGB24(11,10,255,255,255);
-    put_pixel_RGB24(10,11,255,255,255);
-    put_pixel_RGB24(11,11,255,255,255);
+    if (cursor_x >= fb_x) {
+        cursor_y += FONT_HEIGHT;
+        cursor_x = 0;
+    }
 }
 
+/*
+ * Dessine une lettre (caractère ASCII) à la position du curseur et l'avance
+ */
 void drawLetter(char letter) {
-    //TODO
+
+    if (letter == '\n') { // Retour à la ligne
+
+        cursor_y += FONT_HEIGHT;
+        cursor_x = 0;
+
+    } else if (letter == ' ') {
+
+        moveCursorForLetter();
+
+    } else if (33 <= (int)letter && 127 > (int)letter) {
+
+        char * bitmapLetter = font->values[(int)letter];
+
+        for (int line = 0; line < FONT_HEIGHT; ++line) {
+            for (int col = 0; col < FONT_WIDTH; ++col) {
+                if ((bitmapLetter[line] >> col) & 1) {
+                    put_pixel_RGB24(cursor_x + col, cursor_y + line,255,255,255);
+                } else {
+                    put_pixel_RGB24(cursor_x + col, cursor_y + line,0,0,0);
+                }
+            }
+        }
+        moveCursorForLetter();
+
+    }
+}
+
+void drawLetters(char * letters) {
+
+    for (int i = 0; letters[i] && letters[i] != '\0'; ++i) {
+        drawLetter(letters[i]);
+    }
+
 }
