@@ -1,15 +1,26 @@
 #ifndef FONT_H_
 #define FONT_H_
 
-#define FONT_WIDTH 7
-#define FONT_HEIGHT 13
-#define FONT_TABLE_SIZE 128
-#define LETTER_SPACING 2
+#include <stdint.h>
 
-typedef struct {
-    char ** values;
-} FontTable;
+/**
+ * Initialise la police (requis pour utiliser drawLetter et drawLetters)
+ */
+void initFont();
 
-FontTable * initFont();
+/**
+ * Initialise le curseur pour écrire
+ */
+void initCursor(uint32_t min_x, uint32_t min_y, uint32_t max_x, uint32_t max_y);
+
+/**
+ * Permet d'afficher une lettre à la position du curseur et l'avance
+ */
+void drawLetter(char letter);
+
+/**
+ * Permet d'afficher une phrase à la position du curseur et l'avance
+ */
+void drawLetters(char * letters);
 
 #endif /* FONT_H_ */

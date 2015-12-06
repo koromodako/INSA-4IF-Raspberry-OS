@@ -28,6 +28,9 @@ kernel_for_qemu: build/kernel.elf build/kernel.list
 
 kernel_for_sdcard: kernel_for_qemu build/kernel.img 
 
+put_img_in_sdcard : kernel_for_sdcard kernel_for_sdcard
+	cp build/kernel.img /media/antitoine/boot/kernel.img && umount /dev/mmcblk0p1 && umount /dev/mmcblk0p2
+
 remake: clean all
 
 # options à passer au compilateur C
