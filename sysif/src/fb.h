@@ -50,14 +50,14 @@ static inline uint32_t mmio_read(uint32_t reg) {
 
 int FramebufferInitialize();
 
+void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t blue);
+
 void draw();
 
 void drawRed();
 
 void drawBlue();
 
-void drawLetter(char letter);
-
-void drawLetters(char * letters);
+void resetZone(uint32_t min_x, uint32_t min_y, uint32_t max_x, uint32_t max_y, uint8_t red, uint8_t green, uint8_t blue);
 
 #endif
