@@ -1,6 +1,7 @@
 #include "sched.h"
 #include "syscall.h"
 #include "kheap.h"
+#include "vmem.h"
 #include "hw.h"
 #include "util.h"
 #include "asm_tools.h"
@@ -15,8 +16,12 @@ SCHEDULING_POLICY sched_policy;
 void sched_init(SCHEDULING_POLICY schedPolicy)
 {
     // Initialisation de la mémoire
+#ifdef VMEM
+    vmem_init();
+#else
     kheap_init();
-
+#endif
+    
     // Initialisation du premier processus
     kmain_process.state = PS_RUNNING;
     current_process = &kmain_process;
