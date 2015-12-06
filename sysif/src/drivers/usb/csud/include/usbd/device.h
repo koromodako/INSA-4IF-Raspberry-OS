@@ -16,8 +16,8 @@ extern "C"
 {
 #endif
 
-#include <usbd/descriptors.h>
-#include <types.h>
+#include "descriptors.h"
+#include "../types.h"
 
 /** 
 	\brief The maximum number of children a device could have, by implication, this is 

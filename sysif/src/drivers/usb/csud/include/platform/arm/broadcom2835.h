@@ -9,7 +9,7 @@
 *	broadcom2835 chip, used in the Raspberry Pi.
 ******************************************************************************/
 
-#include <configuration.h>
+#include "../../configuration.h"
 
 #ifdef __cplusplus
 extern "C"

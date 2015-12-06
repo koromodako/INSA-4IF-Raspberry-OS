@@ -18,10 +18,10 @@ extern "C"
 #endif
 
 
-#include <usbd/device.h>
-#include <usbd/devicerequest.h>
-#include <usbd/pipe.h>
-#include <types.h>
+#include "../usbd/device.h"
+#include "../usbd/devicerequest.h"
+#include "../usbd/pipe.h"
+#include "../types.h"
 
 /**
 	\brief Intialises the host controller driver for this hardware.

@@ -7,5 +7,5 @@
 *
 *	platform/arm/armv6.h contains definitions for arm version 6 processors.
 ******************************************************************************/
-#include <types.h>
-#include <platform/none/byteorder.h>
+#include "../../types.h"
+#include "../none/byteorder.h"

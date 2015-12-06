@@ -17,8 +17,8 @@ extern "C"
 {
 #endif
 
-#include <types.h>
-#include <usbd/device.h>
+#include "../../types.h"
+#include "../../usbd/device.h"
 
 /**
 	\brief The human interface device descriptor information.

@@ -18,7 +18,7 @@ extern "C"
 {
 #endif
 
-#include <types.h>
+#include "../types.h"
 
 /**
 	\brief Our implementation of the USB pipe defined in 10.5.1. 

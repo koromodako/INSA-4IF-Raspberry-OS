@@ -8,8 +8,8 @@
 *	platform/none/byteorder.h contains generic definitions for changing the 
 *	byte order of halfs to match the processor.
 ******************************************************************************/
-#include <configuration.h>
-#include <types.h>
+#include "../../configuration.h"
+#include "../../types.h"
 
 #ifdef __cplusplus
 extern "C"

@@ -13,7 +13,7 @@
 #ifndef REPORT_H_
 #define REPORT_H_
 
-#include <types.h>
+#include "../../types.h"
 
 #ifdef __cplusplus
 extern "C"
