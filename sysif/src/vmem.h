@@ -2,7 +2,7 @@
 #define VMEM_H
 
 // Macros ----------------------------------------------------------------------
-#define PAGE_SIZE 4000  // En Octet = 4Ko
+#define PAGE_SIZE 4096  // En Octet = 4Ko
 
 #define FIRST_LVL_TT_INDEX_SIZE 12 // Talle de l'index pour une page de niveau 1
 #define FIRST_LVL_TT_COUN 4096 // (soit 2^12, 12 bits pour une entrée du niveau 1) Nombre d'entrées dans la table de niveau 1
@@ -12,19 +12,32 @@
 #define SECON_LVL_TT_COUN 256 // Nombre d'entrées niveau 2
 #define SECON_LVL_TT_SIZE 1024 // (Nombre d'entrées x 4) En Octet
 
+// Flags des pages
+#define TABLE_1_PAGE_FLAGS	0b000000000001
+#define TABLE_2_PAGE_FLAGS	0b0
+#define DEVICE_FLAGS		0b010000110111	
 
 // Fonctions ------------------------------------------
 
 // Memory initialization -----------
+/**
+ *	Initialise la mémoire physique
+ */
 unsigned int init_kern_translation_table(void);
-
-void start_mmu_C();
-void configure_mmu_C();
-void vmem_init();
+/**
+ *	Démarre la MMU
+ */
+void start_mmu_C(void);
+/**
+ *	Configure la MMU
+ */
+void configure_mmu_C(unsigned int translation_base);
+/**
+ *	Initialise la mémoire virtuelle
+ */
+void vmem_init(void);
 
 // Memory management ---------------
-void alloc_page(void);
-void free_page(void);
 
 
 #endif //VMEM_H

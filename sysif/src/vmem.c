@@ -3,34 +3,87 @@
 
 
 unsigned int init_kern_translation_table(void) {
-    // Allocation des pages
-    uint32_t * first_table = (uint32_t*)kAlloc_aligned(FIRST_LVL_TT_SIZE,
-            FIRST_LVL_TT_INDEX_SIZE);
+    // Initialisation des variables de flags
+    uint32_t device_flags = DEVICE_FLAGS;
+    uint32_t table_1_page_flags = TABLE_1_PAGE_FLAGS;
+    uint32_t table_2_page_flags = TABLE_2_PAGE_FLAGS;
+
+    // Allocation de la section contenant les adresses des pages des tables de second niveau
+    uint32_t * translation_base = (uint32_t*)kAlloc_aligned( FIRST_LVL_TT_SIZE, FIRST_LVL_TT_INDEX_SIZE );
     // Itérateur sur la zone de mémoire allouée pour la premiere page
-    uint32_t * first_table_it = first_table;
+    uint32_t * first_table_it = translation_base;
+
+
+    // Pour les pages du kernel -------------------------------------------
+    // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
+    // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
+    int kern_page_count = ((int)(kernel_heap_limit)+1) / (8*PAGE_SIZE*SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
-    int lvl_2_page;
-    for (lvl_2_page = 0; lvl_2_page < FIRST_LVL_TT_COUN; ++lvl_2_page) {
-        (*first_table_it) = (uint32_t)kAlloc_aligned(SECON_LVL_TT_SIZE,
-                SECON_LVL_TT_INDEX_SIZE);
+    int lvl_1_page; // Itération sur la table 1 pour allocation table 2
+    for ( lvl_1_page = 0; 
+          lvl_1_page < kern_page_count; 
+          ++lvl_1_page) 
+    {
+        // Allocation de la section contenant les adresses des pages des sections de RAM
+        uint32_t * second_table_it = (uint32_t*)kAlloc_aligned( SECON_LVL_TT_SIZE, SECON_LVL_TT_INDEX_SIZE ); 
+        // Inscription dans la table de premier niveau de l'adresse de la page de second niveau tout juste allouée 
+        (*first_table_it) = (uint32_t)second_table_it | table_1_page_flags;
+        // On itère sur les pages de second niveau pour renseigner les adresses physiques
+        int lvl_2_page;
+        for ( lvl_2_page = 0; 
+              lvl_2_page < SECON_LVL_TT_COUN; 
+              ++lvl_2_page)
+        {
+            // Inscription de l'adresse physique dans l'entrée de la table de niveau 2
+            (*second_table_it) = (lvl_1_page * SECON_LVL_TT_COUN * PAGE_SIZE + 
+                                 lvl_2_page * PAGE_SIZE) | table_2_page_flags;
+            // Passage à l'entrée suivante dans la table de niveau 2
+            second_table_it++;  
+        }
+        // Passage à l'entrée suivante dans la table de premier niveau
         first_table_it++;
     }
 
-    // Initialisation des pages
-    uint32_t device_flags = 0b010000110111;
-    uint32_t * first_table_it = first_table; // reset de l'iterateur
-    for (lvl_2_page = 0; lvl_2_page < FIRST_LVL_TT_COUN; ++lvl_2_page) {
-            (*first_table_it) |= device_flags;
-            first_table_it++;
-        }
+    // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
+    first_table_it = translation_base + (0x20000000 / (8*PAGE_SIZE*SECON_LVL_TT_COUN));
 
+    // Pour les pages des devices -------------------------------------------
+    // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
+    // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
+    int device_page_count = ((0x20FFFFFF - 0x20000000) + 1) /(8*PAGE_SIZE*SECON_LVL_TT_COUN);
+
+    // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
+    // Itération sur la table 1 pour allocation table 2
+    for ( lvl_1_page = 0; 
+          lvl_1_page < device_page_count; 
+          ++lvl_1_page) 
+    {
+        // Allocation de la section contenant les adresses des pages des sections de RAM
+        uint32_t * second_table_it = (uint32_t*)kAlloc_aligned( SECON_LVL_TT_SIZE, SECON_LVL_TT_INDEX_SIZE ); 
+        // Inscription dans la table de premier niveau de l'adresse de la page de second niveau tout juste allouée 
+        (*first_table_it) = (uint32_t)second_table_it | table_1_page_flags;
+        // On itère sur les pages de second niveau pour renseigner les adresses physiques
+        int lvl_2_page;
+        for ( lvl_2_page = 0; 
+              lvl_2_page < SECON_LVL_TT_COUN; 
+              ++lvl_2_page)
+        {
+            // Inscription de l'adresse physique dans l'entrée de la table de niveau 2
+            (*second_table_it) = (0x20000000 + (lvl_1_page * SECON_LVL_TT_COUN * PAGE_SIZE + 
+                                 lvl_2_page * PAGE_SIZE)) | device_flags; // <<<<<<< Note : here the flag is for devices
+            // Passage à l'entrée suivante dans la table de niveau 2
+            second_table_it++;  
+        }
+        // Passage à l'entrée suivante dans la table de premier niveau
+        first_table_it++;
+    }
 
     // On retourne l'adresse de la page de niveau 1
-    return (unsigned int) (first_table);
+    return (unsigned int) (translation_base);
 }
 
-void start_mmu_C() {
+void start_mmu_C(void) {
     register unsigned int control;
     __asm("mcr p15, 0, %[zero], c1, c0, 0" : : [zero] "r"(0));
     //Disable cache
@@ -46,8 +99,8 @@ void start_mmu_C() {
     __asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 }
 
-void configure_mmu_C() {
-    register unsigned int pt_addr = MMUTABLEBASE;
+void configure_mmu_C(unsigned int translation_base) {
+    register unsigned int pt_addr = translation_base;
     /* Translation table 0 */
     __asm volatile("mcr p15, 0, %[addr], c2, c0, 0" : : [addr] "r" (pt_addr));
     /* Translation table 1 */
@@ -60,6 +113,13 @@ void configure_mmu_C() {
     __asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
 }
 
-void vmem_init() {
+void vmem_init(void) {
+    // Initialisation de la mémoire physique
+    unsigned int translation_base = init_kern_translation_table();
+    // Configuration de la MMU
+    configure_mmu_C(translation_base);
+    // Activation des interruptions et data aborts
 
+    // Démarrage de la MMU
+    start_mmu_C();
 }
