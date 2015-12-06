@@ -18,7 +18,7 @@ unsigned int init_kern_translation_table(void) {
     // Pour les pages du kernel -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
     // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
-    int kern_page_count = ((int)(kernel_heap_limit)+1) / (8*PAGE_SIZE*SECON_LVL_TT_COUN);
+    int kern_page_count = ((int)(kernel_heap_limit)+1) / (/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     int lvl_1_page; // Itération sur la table 1 pour allocation table 2
@@ -47,12 +47,12 @@ unsigned int init_kern_translation_table(void) {
     }
 
     // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
-    first_table_it = translation_base + (0x20000000 / (8*PAGE_SIZE*SECON_LVL_TT_COUN));
+    first_table_it = translation_base + (0x20000000 / (/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN));
 
     // Pour les pages des devices -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
     // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
-    int device_page_count = ((0x20FFFFFF - 0x20000000) + 1) /(8*PAGE_SIZE*SECON_LVL_TT_COUN);
+    int device_page_count = ((0x20FFFFFF - 0x20000000) + 1) /(/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     // Itération sur la table 1 pour allocation table 2
