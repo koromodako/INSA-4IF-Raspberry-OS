@@ -198,9 +198,9 @@ void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t
 
         offset = (y * pitch) + (x * 3);
         ptr = (uint32_t*) (fb_address + offset);
-        *((uint8_t*) ptr) = red;
+        *((uint8_t*) ptr) = blue;
         *((uint8_t*) (ptr + 1)) = green;
-        *((uint8_t*) (ptr + 2)) = blue;
+        *((uint8_t*) (ptr + 2)) = red;
     }
 }
 
@@ -264,3 +264,14 @@ void resetZone(uint32_t min_x, uint32_t min_y, uint32_t max_x, uint32_t max_y, u
     }
 }
 
+uint32_t getResolutionX() {
+    return fb_x;
+}
+
+uint32_t getResolutionY() {
+    return fb_y;
+}
+
+uint32_t getPitch() {
+    return pitch;
+}
