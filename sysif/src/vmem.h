@@ -12,10 +12,15 @@
 #define SECON_LVL_TT_COUN 256 // Nombre d'entrées niveau 2
 #define SECON_LVL_TT_SIZE 1024 // (Nombre d'entrées x 4) En Octet
 
+// Memory limits
+#define DEVICE_START 0x20000000
+#define DEVICE_END 0x20FFFFFF
+
 // Flags des pages
 #define TABLE_1_PAGE_FLAGS	0b000000000001
-#define TABLE_2_PAGE_FLAGS	0b0
-#define DEVICE_FLAGS		0b010000110111	
+#define TABLE_2_PAGE_FLAGS	0b010001110011
+#define DEVICE_FLAGS		0b010000110111
+
 
 // Fonctions ------------------------------------------
 
@@ -38,6 +43,9 @@ void configure_mmu_C(unsigned int translation_base);
 void vmem_init(void);
 
 // Memory management ---------------
-
+/**
+ *	Réalise la traduction de l'adresse logique en adresse physique
+ */
+//uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
 
 #endif //VMEM_H

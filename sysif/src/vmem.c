@@ -2,7 +2,9 @@
 #include "kheap.h"
 #include "asm_tools.h"
 
-
+//
+//
+//
 unsigned int init_kern_translation_table(void) {
     // Initialisation des variables de flags
     uint32_t device_flags = DEVICE_FLAGS;
@@ -47,12 +49,12 @@ unsigned int init_kern_translation_table(void) {
     }
 
     // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
-    first_table_it = translation_base + (0x20000000 / (/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN));
+    first_table_it = translation_base + (DEVICE_START / (/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN));
 
     // Pour les pages des devices -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
     // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
-    int device_page_count = ((0x20FFFFFF - 0x20000000) + 1) /(/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN);
+    int device_page_count = ((DEVICE_END - DEVICE_START) + 1) /(/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     // Itération sur la table 1 pour allocation table 2
@@ -71,7 +73,7 @@ unsigned int init_kern_translation_table(void) {
               ++lvl_2_page)
         {
             // Inscription de l'adresse physique dans l'entrée de la table de niveau 2
-            (*second_table_it) = (0x20000000 + (lvl_1_page * SECON_LVL_TT_COUN * PAGE_SIZE + 
+            (*second_table_it) = (DEVICE_START + (lvl_1_page * SECON_LVL_TT_COUN * PAGE_SIZE + 
                                  lvl_2_page * PAGE_SIZE)) | device_flags; // <<<<<<< Note : here the flag is for devices
             // Passage à l'entrée suivante dans la table de niveau 2
             second_table_it++;  
@@ -83,7 +85,9 @@ unsigned int init_kern_translation_table(void) {
     // On retourne l'adresse de la page de niveau 1
     return (unsigned int) (translation_base);
 }
-
+//
+//
+//
 void start_mmu_C(void) {
     register unsigned int control;
     __asm("mcr p15, 0, %[zero], c1, c0, 0" : : [zero] "r"(0));
@@ -99,7 +103,9 @@ void start_mmu_C(void) {
     /* Write control register */
     __asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 }
-
+//
+//
+//
 void configure_mmu_C(unsigned int translation_base) {
     register unsigned int pt_addr = translation_base;
     /* Translation table 0 */
@@ -113,7 +119,9 @@ void configure_mmu_C(unsigned int translation_base) {
      */
     __asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
 }
-
+//
+//
+//
 void vmem_init(void) {
     // Initialisation de la mémoire physique
     unsigned int translation_base = init_kern_translation_table();
@@ -124,3 +132,53 @@ void vmem_init(void) {
     // Démarrage de la MMU
     start_mmu_C();
 }
+//
+//
+//
+// uint32_t vmem_translate(uint32_t va, struct pcb_s* process)
+// {
+//     uint32_t pa; /* The result */
+//     /* 1st and 2nd table addresses */
+//     uint32_t table_base;
+//     uint32_t second_level_table;
+//     /* Indexes */
+//     uint32_t first_level_index;
+//     uint32_t second_level_index;
+//     uint32_t page_index;
+//     /* Descriptors */
+//     uint32_t first_level_descriptor;
+//     uint32_t* first_level_descriptor_address;
+//     uint32_t second_level_descriptor;
+//     uint32_t* second_level_descriptor_address;
+//     if (process == NULL)
+//     {
+//         __asm("mrc p15, 0, %[tb], c2, c0, 0" : [tb] "=r"(table_base));
+//     }
+//     else
+//     {
+//         table_base = (uint32_t) process->page_table;
+//     }
+//     table_base = table_base & 0xFFFFC000;
+//     /* Indexes*/
+//     first_level_index = (va >> 20);
+//     second_level_index = ((va << 12) >> 24);
+//     page_index = (va & 0x00000FFF);
+//     /* First level descriptor */
+//     first_level_descriptor_address = (uint32_t*) (table_base | (first_level_index << 2));
+//     first_level_descriptor = *(first_level_descriptor_address);
+//     /* Translation fault*/
+//     if (! (first_level_descriptor & 0x3)) {
+//         return (uint32_t) FORBIDDEN_ADDRESS;
+//     }
+//     /* Second level descriptor */
+//     second_level_table = first_level_descriptor & 0xFFFFFC00;
+//     second_level_descriptor_address = (uint32_t*) (second_level_table | (second_level_index << 2));
+//     second_level_descriptor = *((uint32_t*) second_level_descriptor_address);
+//     /* Translation fault*/
+//     if (! (second_level_descriptor & 0x3)) {
+//         return (uint32_t) FORBIDDEN_ADDRESS;
+//     }
+//     /* Physical address */
+//     pa = (second_level_descriptor & 0xFFFFF000) | page_index;
+//     return pa;
+// }
