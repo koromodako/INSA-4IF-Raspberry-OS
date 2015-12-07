@@ -20,7 +20,7 @@ unsigned int init_kern_translation_table(void) {
     // Pour les pages du kernel -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
     // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
-    int kern_page_count = ((int)(kernel_heap_limit)+1) / (/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN);
+    int kern_page_count = ((uint32_t)(kernel_heap_limit)+1) / (/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     int lvl_1_page; // Itération sur la table 1 pour allocation table 2
