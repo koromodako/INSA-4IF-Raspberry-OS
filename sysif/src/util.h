@@ -1,6 +1,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <stdint.h>
+
 // ------------------------ Les fonctions utils données par le prof
 #define PANIC() do { kernel_panic(__FILE__,__LINE__) ; } while(0)
 #define ASSERT(exp) do { if(!(exp)) PANIC(); } while(0)
@@ -65,5 +67,21 @@ typedef enum {
 	SP_QUEUE,
 	SP_PRIORITY_QUEUE
 } SCHEDULING_POLICY;
+
+// Division sur un int 64 bits
+uint64_t
+divide(uint64_t x, uint64_t y);
+
+// Division sur un int 32 bits
+uint32_t
+divide32(uint32_t x, uint32_t y);
+
+// Modulo sur un int 32 bits
+uint32_t mod32(uint32_t x, uint32_t y);
+
+char* itoa(int i, char b[]);
+
+// Retourne l'arrondie supérieur d'une division
+uint32_t getUpperBoundFromDivide32(uint32_t number, uint32_t diviser);
 
 #endif

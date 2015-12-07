@@ -23,7 +23,14 @@ void drawLetter(char letter);
  */
 void drawLetters(char * letters);
 
+/**
+ * Avance le curseur d'une lettre (plus l'espacement entre les lettres)
+ */
+void advanceCursor(uint32_t width);
 
-uint32_t getUpperBoundFromDiv(uint32_t number, uint32_t diviser);
+/**
+ * Vérification de la position du curseur et retour à la ligne (ou reset) en cas de dépassement de la zone
+ */
+void checkCursor();
 
 #endif /* FONT_H_ */
