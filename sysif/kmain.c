@@ -39,7 +39,7 @@ void kmain(void) {
     // **********************************************************************
     initFont();
     initCursor(10, 10, 790, 590);
-    drawLetters("!\n");
+    drawLetters("Hello World !\n");
     drawLetters("Pitch :");
     char * pitch = (char *)kAlloc(sizeof (char) * 12);
     itoa(getPitch(), pitch);
