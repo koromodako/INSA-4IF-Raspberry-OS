@@ -16,11 +16,9 @@ SCHEDULING_POLICY sched_policy;
 void sched_init(SCHEDULING_POLICY schedPolicy)
 {
     // Initialisation de la mémoire
-#ifdef USE_VMEM
-//#warning Virtual memory enabled 
-    vmem_init();
-#else
     kheap_init();
+#ifdef USE_VMEM
+    vmem_init();
 #endif
     
     // Initialisation du premier processus

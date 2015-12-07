@@ -32,7 +32,6 @@ void kmain(void) {
     create_process((func_t*)&user_process_2, PP_MEDIUM);
     create_process((func_t*)&user_process_3, PP_LOW);
     // Initialisation du timer matériel pour les IRQ
-    timer_init();
     ENABLE_IRQ();
     // switch CPU to USER mode
     SWITCH_TO_USER_MODE;
