@@ -21,7 +21,6 @@
 #define TABLE_2_PAGE_FLAGS	0b010001110011
 #define DEVICE_FLAGS		0b010000110111
 
-
 // Fonctions ------------------------------------------
 
 // Memory initialization -----------

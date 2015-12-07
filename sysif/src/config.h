@@ -6,6 +6,8 @@
 #define SERIAL_PRINT 1
 #define RPI 0
 #define DEBUG 1
-#define VMEM 0
+// Commentez cette ligne si vous ne voulez pas 
+// utiliser la memoire virtuelle
+#define USE_VMEM
 
 #endif
