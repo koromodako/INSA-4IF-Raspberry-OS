@@ -23,6 +23,7 @@ struct pcb_s {
     int priority;
     int exit_code;
     func_t * entry;
+    uint32_t page_table;
 };
 
 // Variables globales ----------------------------------------------------------
