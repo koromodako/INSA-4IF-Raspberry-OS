@@ -2,6 +2,38 @@
 #include "kheap.h"
 #include "asm_tools.h"
 
+void init_page_section(uint32_t * table_iterator, 
+                       int page_count, 
+                       uint32_t lvl_1_flags, 
+                       uint32_t lvl_2_flags, 
+                       uint32_t phy_start) 
+{
+    int lvl_1_page; // Itération sur la table 1 pour allocation table 2
+    for ( lvl_1_page = 0; 
+          lvl_1_page < page_count; 
+          ++lvl_1_page) 
+    {
+        // Allocation de la section contenant les adresses des pages des sections de RAM
+        uint32_t * second_table_it = (uint32_t*)kAlloc_aligned( SECON_LVL_TT_SIZE, SECON_LVL_TT_INDEX_SIZE ); 
+        // Inscription dans la table de premier niveau de l'adresse de la page de second niveau tout juste allouée 
+        (*table_iterator) = (uint32_t)second_table_it | lvl_1_flags;
+        // On itère sur les pages de second niveau pour renseigner les adresses physiques
+        int lvl_2_page;
+        for ( lvl_2_page = 0; 
+              lvl_2_page < SECON_LVL_TT_COUN; 
+              ++lvl_2_page)
+        {
+            // Inscription de l'adresse physique dans l'entrée de la table de niveau 2
+            (*second_table_it) = (phy_start + (lvl_1_page * SECON_LVL_TT_COUN * PAGE_SIZE + 
+                                 lvl_2_page * PAGE_SIZE)) | lvl_2_flags;
+            // Passage à l'entrée suivante dans la table de niveau 2
+            second_table_it++;  
+        }
+        // Passage à l'entrée suivante dans la table de premier niveau
+        table_iterator++;
+    }
+}
+
 //
 //
 //
@@ -23,30 +55,13 @@ unsigned int init_kern_translation_table(void) {
     int kern_page_count = ((uint32_t)(kernel_heap_limit)+1) / (/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
-    int lvl_1_page; // Itération sur la table 1 pour allocation table 2
-    for ( lvl_1_page = 0; 
-          lvl_1_page < kern_page_count; 
-          ++lvl_1_page) 
-    {
-        // Allocation de la section contenant les adresses des pages des sections de RAM
-        uint32_t * second_table_it = (uint32_t*)kAlloc_aligned( SECON_LVL_TT_SIZE, SECON_LVL_TT_INDEX_SIZE ); 
-        // Inscription dans la table de premier niveau de l'adresse de la page de second niveau tout juste allouée 
-        (*first_table_it) = (uint32_t)second_table_it | table_1_page_flags;
-        // On itère sur les pages de second niveau pour renseigner les adresses physiques
-        int lvl_2_page;
-        for ( lvl_2_page = 0; 
-              lvl_2_page < SECON_LVL_TT_COUN; 
-              ++lvl_2_page)
-        {
-            // Inscription de l'adresse physique dans l'entrée de la table de niveau 2
-            (*second_table_it) = (lvl_1_page * SECON_LVL_TT_COUN * PAGE_SIZE + 
-                                 lvl_2_page * PAGE_SIZE) | table_2_page_flags;
-            // Passage à l'entrée suivante dans la table de niveau 2
-            second_table_it++;  
-        }
-        // Passage à l'entrée suivante dans la table de premier niveau
-        first_table_it++;
-    }
+    init_page_section(
+                      first_table_it,
+                      kern_page_count,
+                      table_1_page_flags, 
+                      table_2_page_flags,
+                      0x0
+                      );
 
     // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
     first_table_it = translation_base + (DEVICE_START / (/*8* RAM en mots de 8 bits*/PAGE_SIZE*SECON_LVL_TT_COUN));
@@ -58,29 +73,13 @@ unsigned int init_kern_translation_table(void) {
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     // Itération sur la table 1 pour allocation table 2
-    for ( lvl_1_page = 0; 
-          lvl_1_page < device_page_count; 
-          ++lvl_1_page) 
-    {
-        // Allocation de la section contenant les adresses des pages des sections de RAM
-        uint32_t * second_table_it = (uint32_t*)kAlloc_aligned( SECON_LVL_TT_SIZE, SECON_LVL_TT_INDEX_SIZE ); 
-        // Inscription dans la table de premier niveau de l'adresse de la page de second niveau tout juste allouée 
-        (*first_table_it) = (uint32_t)second_table_it | table_1_page_flags;
-        // On itère sur les pages de second niveau pour renseigner les adresses physiques
-        int lvl_2_page;
-        for ( lvl_2_page = 0; 
-              lvl_2_page < SECON_LVL_TT_COUN; 
-              ++lvl_2_page)
-        {
-            // Inscription de l'adresse physique dans l'entrée de la table de niveau 2
-            (*second_table_it) = (DEVICE_START + (lvl_1_page * SECON_LVL_TT_COUN * PAGE_SIZE + 
-                                 lvl_2_page * PAGE_SIZE)) | device_flags; // <<<<<<< Note : here the flag is for devices
-            // Passage à l'entrée suivante dans la table de niveau 2
-            second_table_it++;  
-        }
-        // Passage à l'entrée suivante dans la table de premier niveau
-        first_table_it++;
-    }
+    init_page_section(
+                      first_table_it,
+                      device_page_count,
+                      table_1_page_flags, 
+                      device_flags,
+                      DEVICE_START
+                      );
 
     // On retourne l'adresse de la page de niveau 1
     return (unsigned int) (translation_base);
