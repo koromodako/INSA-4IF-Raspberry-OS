@@ -58,7 +58,7 @@ itoa(int i, char b[]) {
 
 uint32_t
 getUpperBoundFromDivide32(uint32_t number, uint32_t diviser) {
-    if (mod32(number,diviser)) {
+    if (mod32(number,diviser) == 0) {
         return divide32(number, diviser);
     } else {
         return divide32(number, diviser) + 1;

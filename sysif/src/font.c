@@ -950,15 +950,18 @@ void drawLetter(char letter) {
         char * bitmapLetter = font->values[asciiValue];
         uint32_t widthLetter = font->widths[asciiValue];
         uint32_t heightLetter = font->heights[asciiValue];
-        uint32_t nbBlockPerLine = getUpperBoundFromDivide32(widthLetter, SIZE_OF_BLOCK) + 1;
+        uint32_t nbBlockPerLine = getUpperBoundFromDivide32(widthLetter, SIZE_OF_BLOCK);
 
         uint32_t line = 0;
         while(line < heightLetter) {
             uint32_t col = 0;
             while (col < widthLetter) {
-                if ((bitmapLetter[line * nbBlockPerLine + divide32(col, SIZE_OF_BLOCK)] >> mod32(col, SIZE_OF_BLOCK)) & 1) { // Commenter ici !
+                // Vérifie si l'on doit tracer un pixel blanc à cet endroit 
+                // Attention : pour les xbm, on ignore les bits qui dépassent de la ligne
+                // TODO : faire une explication plus longue dans le readme
+                if ((bitmapLetter[line * nbBlockPerLine + divide32(col, SIZE_OF_BLOCK)] >> mod32(col, SIZE_OF_BLOCK)) & 1) { 
                     put_pixel_RGB24(cursor_x + col, cursor_y + line, 255, 255, 255);
-                }
+                } 
                 ++col;
             }
             ++line;
