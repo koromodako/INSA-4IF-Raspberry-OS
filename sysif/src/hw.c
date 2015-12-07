@@ -2,34 +2,7 @@
 
 #include "hw.h"
 #include "asm_tools.h"
-
-/***************************
- ******** Utilities ********
- ***************************/
-uint64_t
-divide(uint64_t x, uint64_t y) {
-    int quotient = 0;
-    while (x >= y) {
-        x  -=  y;
-        quotient++;
-    }
-    return quotient;
-}
-
-uint32_t
-divide32(uint32_t x, uint32_t y) {
-    int quotient = 0;
-    while (x >= y) {
-        x  -=  y;
-        quotient++;
-    }
-    return quotient;
-}
-
-uint32_t
-mod32(uint32_t x, uint32_t y) {
-    return x - (y * divide32(x,y));
-}
+#include "util.h"
 
 /* ***************************
  * ********** Timer **********
