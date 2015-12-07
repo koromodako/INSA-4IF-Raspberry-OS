@@ -2,6 +2,7 @@
 #include "font.h"
 #include "kheap.h"
 #include "fb.h"
+#include "hw.h"
 
 #define FONT_TABLE_SIZE 128
 
@@ -933,6 +934,14 @@ void advanceCursor(uint32_t width) {
     checkCursor();
 }
 
+uint32_t getUpperBoundFromDiv(uint32_t number, uint32_t diviser) {
+    if (mod32(number,diviser)) {
+        return divide32(number, diviser);
+    } else {
+        return divide32(number, diviser) + 1; 
+    }
+}
+
 void drawLetter(char letter) {
 
     if (letter == '\n') { // Retour à la ligne
@@ -960,18 +969,16 @@ void drawLetter(char letter) {
             }
         }*/
 
-        uint32_t position = 0;
         uint32_t line = 0;
         while(line < heightLetter) {
             uint32_t col = 0;
             while (col < widthLetter) {
-                if ((bitmapLetter[(position - position%8) / 8] >> position%8) & 1) { // Commenter ici !
+                if ((bitmapLetter[line*(getUpperBoundFromDiv(widthLetter,8)+1) + ((int)(col/8))] >> col%8) & 1) { // Commenter ici !
                     put_pixel_RGB24(cursor_x + col, cursor_y + line,255,255,255);
                 } else {
                     put_pixel_RGB24(cursor_x + col, cursor_y + line,255,0,0);
                 }
                 ++col;
-                ++position;
             }
             ++line;
         }

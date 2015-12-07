@@ -23,4 +23,7 @@ void drawLetter(char letter);
  */
 void drawLetters(char * letters);
 
+
+uint32_t getUpperBoundFromDiv(uint32_t number, uint32_t diviser);
+
 #endif /* FONT_H_ */

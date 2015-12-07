@@ -116,8 +116,9 @@ void led_on(void);
 void led_off(void);
 void led_switch(void);
 void led_blink(void);
-
 void hw_init();
+uint32_t divide32(uint32_t, uint32_t);
+uint32_t mod32(uint32_t, uint32_t);
 void terminate_kernel();
 
 #endif
