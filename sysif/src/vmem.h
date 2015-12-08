@@ -44,12 +44,35 @@ void configure_mmu_C(unsigned int translation_base);
  */
 void vmem_init(void);
 
-// Memory management ---------------
+// Memory debug --------------------
 /**
  *	Réalise la traduction de l'adresse logique en adresse physique
  */
-
 uint32_t vmem_translate(uint32_t va, uint32_t table_base);
 uint32_t vmem_translate_ps(uint32_t va, struct pcb_s* process);
 
+
+// ----------------- Memory management ---------------
+
+// Appel système : reboot ------------------------------------------------------
+/**
+ *	Appel système pour allouer size octets dans l'espace d'adressage du processus
+ */
+void* sys_mmap(unsigned int size);
+/**
+ *	Appel noyau pour allouer size octets dans l'espace d'adressage du processus
+ */
+void do_sys_mmap();
+// Appel système : reboot ------------------------------------------------------
+/**
+ *	Appel système pour liberer size octet à partir de addr
+ */
+ void sys_munmap(void * addr, unsigned int size);
+/**
+ *	Appel noyau pour liberer size octet à partir de addr
+ */
+void do_sys_munmap();
+
+
 #endif //VMEM_H
+
