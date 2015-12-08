@@ -30,8 +30,7 @@ void display_process() {
 
     initCursor(10, 100, getResolutionX(), getResolutionY());
     //uint32_t letter = 33;
-    drawLine(0,0,400, 300);
-    drawLine(200,50,10, 300);
+    drawLine(10,70,getResolutionX()-10, 100);
 
     // while (1) {
     //     drawLetter((char)letter);

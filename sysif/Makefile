@@ -22,19 +22,23 @@ test:
 	@printf "| 12: Yield Stack Scheduling With Time Interruption (it's a long test) ... "	&& ./tools/run-test.sh test/kmain-yield-multiprocess.c test/stack-scheduling-time-interruption.gdb | tail -1
 	@echo   "+----------------------------------------------------------------------------------"
 
+# options à passer au compilateur C si QEMU
+CFLAGS_QEMU=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -DQEMU
+# options à passer au compilateur C
+CFLAGS_STD=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
+
 all: kernel_for_qemu kernel_for_sdcard
 
+kernel_for_qemu: CFLAGS=$(CFLAGS_QEMU) 
 kernel_for_qemu: build/kernel.elf build/kernel.list
 
-kernel_for_sdcard: kernel_for_qemu build/kernel.img 
+kernel_for_sdcard: CFLAGS=$(CFLAGS_STD) 
+kernel_for_sdcard: build/kernel.elf build/kernel.img 
 
 put_img_in_sdcard : kernel_for_sdcard kernel_for_sdcard
 	cp build/kernel.img /media/antitoine/boot/kernel.img && umount /dev/mmcblk0p1 && umount /dev/mmcblk0p2
 
 remake: clean all
-
-# options à passer au compilateur C
-CFLAGS=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
 
 # options à passer à la fois au compilateur C et à l'assembleur
 COMMON_FLAGS=-mcpu=arm1176jzf-s
@@ -63,11 +67,11 @@ build:
 
 # compilation C vers ELF
 build/%.o: src/%.c $(wildcard src/*.h) | build
-	arm-none-eabi-gcc $(COMMON_FLAGS) $(CFLAGS) $< -c -o $@
+	arm-none-eabi-gcc $(COMMON_FLAGS) ${CFLAGS} $< -c -o $@
 
 # compilation du point d'entrée 
 build/kmain.o: $(KMAIN) $(wildcard src/*.h)
-	arm-none-eabi-gcc $(COMMON_FLAGS) $(CFLAGS) -I src $< -c -o $@
+	arm-none-eabi-gcc $(COMMON_FLAGS) ${CFLAGS} -I src $< -c -o $@
 	@#"let's silently remember the checksum of the most recent kmain.c we compiled"
 	@md5sum $(KMAIN) > build/kmain.md5
 

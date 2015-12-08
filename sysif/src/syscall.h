@@ -5,7 +5,6 @@
 #include "sched.h"
 
 // Macros ----------------------------------------------------------------------
-#define QEMU // Mode d'execution
 #define SIZE_OF_STACK_SEG sizeof(uint32_t*) // Taille d'un élement dans la pile
 
 // Appel système : reboot ------------------------------------------------------
