@@ -10,22 +10,9 @@
 #define FONT_TABLE_END 126
 #define SIZE_OF_BLOCK 8
 
-typedef struct {
-    uint32_t * widths;
-    uint32_t * heights;
-    char ** values;
-} FontTable;
-
-static FontTable* font;
-static uint32_t cursor_x, cursor_y;
-static uint32_t min_x, min_y, max_x, max_y;
-static uint32_t max_width, max_height;
-static uint32_t spacing_width;
-
-
-void initFont() {
-
-    font = (FontTable *)kAlloc(sizeof (FontTable));
+FontTable* initFont()
+{
+    FontTable* font = (FontTable *)kAlloc(sizeof (FontTable));
     font->values = (char **)kAlloc(FONT_TABLE_SIZE * sizeof (char *)); // ASCII Size Table
     font->widths = (uint32_t *)kAlloc(FONT_TABLE_SIZE * sizeof (uint32_t)); // ASCII Size Table
     font->heights = (uint32_t *)kAlloc(FONT_TABLE_SIZE * sizeof (uint32_t)); // ASCII Size Table
@@ -319,63 +306,69 @@ void initFont() {
     font->widths[126] = char_font_126_width;
     font->heights[126] = char_font_126_height;
 
-    max_width = 13;
-    max_height = 0;
-    spacing_width = 0;
+    font->max_width = 13;
+    font->max_height = 0;
+    font->spacing_width = 0;
 
     for (uint32_t i = FONT_TABLE_START; i <= FONT_TABLE_END; ++i) {
-        if (max_height < font->heights[i]) {
-            max_height = font->heights[i];
+        if (font->max_height < font->heights[i]) {
+            font->max_height = font->heights[i];
         }
-        if (max_width < font->widths[i]) {
-            max_width = font->widths[i];
+        if (font->max_width < font->widths[i]) {
+            font->max_width = font->widths[i];
         }
-        spacing_width += font->widths[i];
+        font->spacing_width += font->widths[i];
     }
-    spacing_width = getUpperBoundFromDivide32(spacing_width, FONT_TABLE_END - FONT_TABLE_START);
+    font->spacing_width = getUpperBoundFromDivide32(font->spacing_width, FONT_TABLE_END - FONT_TABLE_START);
+
+    return font;
 }
 
 
 
-void initCursor(uint32_t cur_min_x, uint32_t cur_min_y, uint32_t cur_max_x, uint32_t cur_max_y) {
-    max_x = cur_max_x;
-    max_y = cur_max_y;
-    min_x = cur_min_x;
-    min_y = cur_min_y;
-
-    cursor_x = min_x;
-    cursor_y = min_y;
+FontCursor * initCursor(uint32_t cur_min_x, uint32_t cur_min_y, uint32_t cur_max_x, uint32_t cur_max_y)
+{
+    FontCursor* cursor = (FontCursor *)kAlloc(sizeof (FontCursor));
+    cursor->max_x = cur_max_x;
+    cursor->max_y = cur_max_y;
+    cursor->min_x = cur_min_x;
+    cursor->min_y = cur_min_y;
+    cursor->cursor_x = cur_min_x;
+    cursor->cursor_y = cur_min_y;
+    return cursor;
 }
 
-void checkCursor() {
-    if (cursor_x > max_x - max_width) {
-        cursor_y += max_height;
-        cursor_x = min_x;
+void checkCursor(FontCursor * cursor, FontTable * font)
+{
+    if (cursor->cursor_x > cursor->max_x - font->max_width) {
+        cursor->cursor_y += font->max_height;
+        cursor->cursor_x = cursor->min_x;
     }
-    if (cursor_y > max_y - max_height) {
-        resetZone(min_x, min_y, max_x, max_y, 0, 0, 0);
-        cursor_x = min_x;
-        cursor_y = min_y;
+    if (cursor->cursor_y > cursor->max_y - font->max_height) {
+        draw(cursor->min_x, cursor->min_y, cursor->max_x, cursor->max_y, 0, 0, 0);
+        cursor->cursor_x = cursor->min_x;
+        cursor->cursor_y = cursor->min_y;
     }
 }
 
-void advanceCursor(uint32_t width) {
-    cursor_x += width; // Letter spacing
-    checkCursor();
+void advanceCursor(FontCursor * cursor, FontTable * font, uint32_t width)
+{
+    cursor->cursor_x += width; // Letter spacing
+    checkCursor(cursor, font);
 }
 
-void drawLetter(char letter) {
-
+void drawLetter(FontCursor * cursor, FontTable * font, char letter)
+{
     uint32_t asciiValue = (uint32_t) letter;
     if (letter == '\n') { // Retour à la ligne
 
-        cursor_y += max_height;
-        cursor_x = min_x;
-        checkCursor();
+        cursor->cursor_y += font->max_height;
+        cursor->cursor_x = cursor->min_x;
+        checkCursor(cursor, font);
 
     } else if (letter == ' ') { // Espace
 
-        advanceCursor(spacing_width);
+        advanceCursor(cursor, font, font->spacing_width);
 
     } else if (FONT_TABLE_START <= asciiValue && FONT_TABLE_END >= asciiValue) {
 
@@ -392,22 +385,22 @@ void drawLetter(char letter) {
                 // Attention : pour les xbm, on ignore les bits qui dépassent de la ligne
                 // TODO : faire une explication plus longue dans le readme
                 if ((bitmapLetter[line * nbBlockPerLine + divide32(col, SIZE_OF_BLOCK)] >> mod32(col, SIZE_OF_BLOCK)) & 1) { 
-                    put_pixel_RGB24(cursor_x + col, cursor_y + line, 255, 255, 255);
+                    put_pixel_RGB24(cursor->cursor_x + col, cursor->cursor_y + line, 255, 255, 255);
                 } 
                 ++col;
             }
             ++line;
         }
 
-        advanceCursor(widthLetter);
+        advanceCursor(cursor, font, widthLetter);
 
     }
 }
 
-void drawLetters(char * letters) {
+void drawLetters(FontCursor * cursor, FontTable * font, char * letters) {
 
     for (uint32_t i = 0; letters[i] && letters[i] != '\0'; ++i) {
-        drawLetter(letters[i]);
+        drawLetter(cursor, font, letters[i]);
     }
 
 }

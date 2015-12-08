@@ -213,6 +213,7 @@ void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t
 /*
  * Dessine sur tous les pixels des couleurs différentes
  */
+/*
 void draw() {
     uint8_t red = 0, green = 0, blue = 0;
     uint32_t x = 0, y = 0;
@@ -236,6 +237,7 @@ void draw() {
         }
     }
 }
+*/
 
 /*
  * Rempli l'écran de rouge
@@ -261,7 +263,7 @@ void drawBlue() {
     }
 }
 
-void resetZone(uint32_t min_x, uint32_t min_y, uint32_t max_x, uint32_t max_y, uint8_t red, uint8_t green, uint8_t blue) {
+void draw(uint32_t min_x, uint32_t min_y, uint32_t max_x, uint32_t max_y, uint8_t red, uint8_t green, uint8_t blue) {
     uint32_t x = 0, y = 0;
     for (y = min_y; y < max_y && y < fb_y; y++) {
         for (x = min_x; x < max_x && x < fb_x; x++) {
