@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # ImageMagick
-#command -v convert >/dev/null 2>&1 || { echo >&2 "imagemagick n'est pas installé, il est alors impossible de générer la police demandée. Essayer 'sudo apt-get install imagemagick'"; exit 1; }
+command -v convert >/dev/null 2>&1 || { echo >&2 "imagemagick n'est pas installé, il est alors impossible de générer la police demandée. Essayer 'sudo apt-get install imagemagick'"; exit 1; }
 
 # Graphics Magick
 command -v gm >/dev/null 2>&1 || { echo >&2 "graphics magick n'est pas installé, il est alors impossible de générer la police demandée. Essayer 'sudo apt-get install graphicsmagick'"; exit 1; }
 
-FONT_SIZE=12
-FONT_NAME=Latin-Modern-Mono-12-Regular
+FONT_SIZE=16
+FONT_NAME=Courier-Regular
 
 ASCII_START=32
 ASCII_END=126
@@ -34,9 +34,15 @@ echo "#ifndef FONT_SPEC_H_
 
 for ((i = $ASCII_START; i <= $ASCII_END; i++)); do
 	n=`printf "\x$(printf %x $i)"`
-        # Use Image Magick : convert -font $FONT_NAME -pointsize $FONT_SIZE label:$n ${TMP_DIR_PATH}/${TMP_DIR_NAME}/$i.xbm && \
-	gm convert -antialias -font $FONT_NAME -pointsize $FONT_SIZE label:$n ${TMP_DIR_PATH}/${TMP_DIR_NAME}/$i.xbm && \
+  convert +antialias -font $FONT_NAME -pointsize $FONT_SIZE label:$n ${TMP_DIR_PATH}/${TMP_DIR_NAME}/$i.xbm && \
+  #gm convert +antialias -font $FONT_NAME -pointsize $FONT_SIZE label:$n ${TMP_DIR_PATH}/${TMP_DIR_NAME}/$i.xbm && \
 	cat ${TMP_DIR_PATH}/${TMP_DIR_NAME}/$i.xbm | sed "s/#define /#define char_font_/" | sed "s/static char /static char char_font_/" >> ${FONT_FILES_PATH}/${FONT_FILE_NAME}
+  if [[ $? != 0 ]]
+  then 
+      gm convert +antialias -pointsize $FONT_SIZE label:$n ${TMP_DIR_PATH}/${TMP_DIR_NAME}/$i.xbm && \
+      cat ${TMP_DIR_PATH}/${TMP_DIR_NAME}/$i.xbm | sed "s/#define /#define char_font_/" | sed "s/static char /static char char_font_/" >> ${FONT_FILES_PATH}/${FONT_FILE_NAME}
+  fi
+
 done
 
 echo "
@@ -44,12 +50,21 @@ echo "
 
 echo "Création du fichier ${FONT_FILES_PATH}/${FONT_FILE_NAME}"
 
+read -p "mv font_spec.h ? (Y/n) : " -r
+echo ""
+if [[ $REPLY =~ ^[Yy]$ ]];
+then
+    mv -f ${FONT_FILE_NAME} ../src/
+fi
+
 read -p "Supprimer le dossier temporaire ? (Y/n) : " -r
 echo ""
-if [[ ! $REPLY =~ ^[Yy]$ ]]
+if [[ ! $REPLY =~ ^[Yy]$ ]];
 then
     exit 1
 fi
+
+
 
 rm -f ${TMP_DIR_PATH}/${TMP_DIR_NAME}/*.xbm
 rmdir ${TMP_DIR_PATH}/${TMP_DIR_NAME}
