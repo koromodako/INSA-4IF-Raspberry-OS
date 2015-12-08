@@ -5,6 +5,7 @@
 #include "asm_tools.h"
 #include "fb.h"
 #include "graphics.h"
+#include "display.h"
 #include "font.h"
 #include "kheap.h"
 
@@ -28,20 +29,20 @@ void display_process() {
     drawLetters(resolutionY);
     drawLetters("\n");
 
-    initCursor(10, 100, getResolutionX(), getResolutionY());
-    //uint32_t letter = 33;
-    drawLine(10,70,getResolutionX()-10, 100);
+    drawLine(10,70,getResolutionX()-10, 70);
 
-    // while (1) {
-    //     drawLetter((char)letter);
-    //     letter++;
-    //     if (letter > 126) {
-    //         letter = 33;
-    //     }
+    initCursor(10, 90, getResolutionX()-10, getResolutionY()-10);
+    uint32_t letter = 33;
+    while (1) {
+        drawLetter((char)letter);
+        letter++;
+        if (letter > 126) {
+             letter = 33;
+        }
 
-    //     uint32_t sleep = 0;
-    //     for (sleep = 0; sleep < 100000; sleep++);
-    // }
+        uint32_t sleep = 0;
+         for (sleep = 0; sleep < 100000; sleep++);
+    }
 }
 
 void kmain(void) {
