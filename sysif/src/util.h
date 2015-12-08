@@ -28,7 +28,7 @@ void kernel_panic(char* string, int number);
 // <!> Destruction en deux temps car on ne peut pas prévoir comment est gérée la mémoire  
 #define MEM_FREE(pcb) \
 	kFree((void *)pcbToDestroy->sp_start, SIZE_STACK_PROCESS); \
-	kFree((void *)pcbToDestroy, sizeof(struct pcb_s))
+	kFree((void *)pcbToDestroy, sizeof(pcb_s))
 
 // Enum for syscall ids
 enum SYS_CALL_ID {

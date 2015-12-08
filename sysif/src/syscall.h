@@ -36,7 +36,7 @@ void sys_settime(uint64_t date_ms);
 /**
  *	Appel noyau pour paramétrer le temps
  */
-void do_sys_settime(struct pcb_s * context);
+void do_sys_settime(pcb_s * context);
 
 // Appel système : gettime -----------------------------------------------------
 /**
@@ -46,7 +46,7 @@ uint64_t sys_gettime();
 /**
  *	Appel noyau pour recupérer le temps	
  */
-void do_sys_gettime(struct pcb_s * context);
+void do_sys_gettime(pcb_s * context);
 
 // Handler des appels systèmes -------------------------------------------------
 /**

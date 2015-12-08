@@ -2,6 +2,11 @@
 #include "kheap.h"
 #include "asm_tools.h"
 
+// Variables globales 
+//  Pointeur sur la premiere case de la 
+//  table d'occupation des frames
+uint8_t * free_frames_table;
+
 void init_page_section(uint32_t * table_iterator, 
                        int page_count, 
                        uint32_t lvl_1_flags, 
@@ -20,8 +25,8 @@ void init_page_section(uint32_t * table_iterator,
         for ( lvl_2_page = 0 ; lvl_2_page < SECON_LVL_TT_COUN ; ++lvl_2_page )
         {
             // Inscription de l'adresse physique dans l'entrée de la table de niveau 2
-            (*second_table_it) = (phy_start + (lvl_1_page * SECON_LVL_TT_COUN * PAGE_SIZE + 
-                                 lvl_2_page * PAGE_SIZE)) | lvl_2_flags;
+            (*second_table_it) = (phy_start + (lvl_1_page * SECON_LVL_TT_COUN * FRAME_SIZE + 
+                                 lvl_2_page * FRAME_SIZE)) | lvl_2_flags;
             // Passage à l'entrée suivante dans la table de niveau 2
             second_table_it++;
         }
@@ -46,7 +51,7 @@ unsigned int init_kern_translation_table(void)
     // Pour les pages du kernel -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
     // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
-    int kern_page_count = ((uint32_t)(kernel_heap_limit)+1) / (PAGE_SIZE*SECON_LVL_TT_COUN);
+    int kern_page_count = ((uint32_t)(kernel_heap_limit)+1) / (FRAME_SIZE*SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     init_page_section(first_table_it,
@@ -56,12 +61,12 @@ unsigned int init_kern_translation_table(void)
                       0x0);
 
     // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
-    first_table_it = translation_base + (DEVICE_START / (PAGE_SIZE*SECON_LVL_TT_COUN));
+    first_table_it = translation_base + (DEVICE_START / (FRAME_SIZE*SECON_LVL_TT_COUN));
 
     // Pour les pages des devices -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
     // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
-    int device_page_count = ((DEVICE_END - DEVICE_START) + 1) /(PAGE_SIZE*SECON_LVL_TT_COUN);
+    int device_page_count = ((DEVICE_END - DEVICE_START) + 1) /(FRAME_SIZE*SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     // Itération sur la table 1 pour allocation table 2
@@ -75,48 +80,32 @@ unsigned int init_kern_translation_table(void)
     return (unsigned int) (translation_base);
 }
 
-void start_mmu_C(void) 
-{
-    register unsigned int control;
-    __asm("mcr p15, 0, %[zero], c1, c0, 0" : : [zero] "r"(0));
-    //Disable cache
-    __asm("mcr p15, 0, r0, c7, c7, 0");
-    //Invalidate cache (data and instructions) */
-    __asm("mcr p15, 0, r0, c8, c7, 0");
-    //Invalidate TLB entries
-    /* Enable ARMv6 MMU features (disable sub-page AP) */
-    control = (1 << 23) | (1 << 15) | (1 << 4) | 1;
-    /* Invalidate the translation lookaside buffer (TLB) */
-    __asm volatile("mcr p15, 0, %[data], c8, c7, 0" : : [data] "r" (0));
-    /* Write control register */
-    __asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
-}
 
-void configure_mmu_C(unsigned int translation_base) 
-{
-    register unsigned int pt_addr = translation_base;
-    /* Translation table 0 */
-    __asm volatile("mcr p15, 0, %[addr], c2, c0, 0" : : [addr] "r" (pt_addr));
-    /* Translation table 1 */
-    __asm volatile("mcr p15, 0, %[addr], c2, c0, 1" : : [addr] "r" (pt_addr));
-    /* Use translation table 0 for everything */
-    __asm volatile("mcr p15, 0, %[n], c2, c0, 2" : : [n] "r" (0));
-    /* Set Domain 0 ACL to "Manager", not enforcing memory permissions
-     * Every mapped section/page is in domain 0
-     */
-    __asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
-}
 
 void vmem_init(void) 
 {
+    // Initialisation de la table d'occupation des frames
+    free_frames_table = (uint8_t*)kAlloc(FREE_FRAMES_TABLE_SIZE);
+
+    int fm_index;
+    for (fm_index = 0; fm_index < FREE_FRAMES_TABLE_SIZE; ++fm_index)
+    {
+        // Si fm_index en zone occupée 
+        if(fm_index > 0 && fm_index < 10 &&
+           fm_index > 0 && fm_index < 10
+           /* ... */)
+        {
+            free_frames_table[fm_index] = LOCK_FRAME;
+        } 
+        // Sinon zone libre
+        else
+        {
+            free_frames_table[fm_index] = FREE_FRAME;
+        }
+    }
+
     // Initialisation de la mémoire physique
     unsigned int translation_base = init_kern_translation_table();
-
-    uint32_t phy_addr1 = vmem_translate(0x9e48, translation_base);
-    phy_addr1++;
-    uint32_t phy_addr2 = vmem_translate(0x10000, translation_base);
-    phy_addr2++;
-
     // Configuration de la MMU
     configure_mmu_C(translation_base);
     // Activation des interruptions et data aborts
@@ -124,6 +113,40 @@ void vmem_init(void)
     // Démarrage de la MMU
     start_mmu_C();
 }
+
+uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size)
+{
+    // 1
+    return 0x0;
+}
+
+void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size)
+{
+    // 2
+}
+
+void* sys_mmap(unsigned int size)
+{
+    // 4
+    return 0x0;
+}
+
+void do_sys_mmap()
+{
+    // 3
+}
+
+void sys_munmap(void * addr, unsigned int size)
+{
+    // 6
+}
+
+void do_sys_munmap()
+{
+    // 5
+}
+
+// Fonctions données par le sujet --------------------------------
 
 uint32_t vmem_translate(uint32_t va, uint32_t table_base)
 {
@@ -166,7 +189,7 @@ uint32_t vmem_translate(uint32_t va, uint32_t table_base)
     return pa;
 }
 
-uint32_t vmem_translate_ps(uint32_t va, struct pcb_s* process)
+uint32_t vmem_translate_ps(uint32_t va, pcb_s* process)
 {
     uint32_t pa; /* The result */
     /* 1st and 2nd table addresses */
@@ -214,22 +237,35 @@ uint32_t vmem_translate_ps(uint32_t va, struct pcb_s* process)
     return pa;
 }
 
-void* sys_mmap(unsigned int size)
+void start_mmu_C(void) 
 {
-    
+    register unsigned int control;
+    __asm("mcr p15, 0, %[zero], c1, c0, 0" : : [zero] "r"(0));
+    //Disable cache
+    __asm("mcr p15, 0, r0, c7, c7, 0");
+    //Invalidate cache (data and instructions) */
+    __asm("mcr p15, 0, r0, c8, c7, 0");
+    //Invalidate TLB entries
+    /* Enable ARMv6 MMU features (disable sub-page AP) */
+    control = (1 << 23) | (1 << 15) | (1 << 4) | 1;
+    /* Invalidate the translation lookaside buffer (TLB) */
+    __asm volatile("mcr p15, 0, %[data], c8, c7, 0" : : [data] "r" (0));
+    /* Write control register */
+    __asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 }
 
-void do_sys_mmap()
+void configure_mmu_C(unsigned int translation_base) 
 {
-    
+    register unsigned int pt_addr = translation_base;
+    /* Translation table 0 */
+    __asm volatile("mcr p15, 0, %[addr], c2, c0, 0" : : [addr] "r" (pt_addr));
+    /* Translation table 1 */
+    __asm volatile("mcr p15, 0, %[addr], c2, c0, 1" : : [addr] "r" (pt_addr));
+    /* Use translation table 0 for everything */
+    __asm volatile("mcr p15, 0, %[n], c2, c0, 2" : : [n] "r" (0));
+    /* Set Domain 0 ACL to "Manager", not enforcing memory permissions
+     * Every mapped section/page is in domain 0
+     */
+    __asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
 }
 
-void sys_munmap(void * addr, unsigned int size)
-{
-
-}
-
-void do_sys_munmap()
-{
-    
-}
