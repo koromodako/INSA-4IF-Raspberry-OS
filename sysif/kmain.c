@@ -8,6 +8,8 @@ void user_process_1() {
     while (1) {
         v1++;
     }
+    // Toujours signaler la fin du process
+    sys_exit(0);
 }
 
 void user_process_2() {
@@ -37,6 +39,7 @@ void kmain(void) {
     SWITCH_TO_USER_MODE;
     // **********************************************************************
     while (1) {
+
         sys_yield();
     }
 }

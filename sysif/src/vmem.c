@@ -30,10 +30,8 @@ void init_page_section(uint32_t * table_iterator,
     }
 }
 
-//
-//
-//
-unsigned int init_kern_translation_table(void) {
+unsigned int init_kern_translation_table(void) 
+{
     // Initialisation des variables de flags
     uint32_t device_flags = DEVICE_FLAGS;
     uint32_t table_1_page_flags = TABLE_1_PAGE_FLAGS;
@@ -76,10 +74,9 @@ unsigned int init_kern_translation_table(void) {
     // On retourne l'adresse de la page de niveau 1
     return (unsigned int) (translation_base);
 }
-//
-//
-//
-void start_mmu_C(void) {
+
+void start_mmu_C(void) 
+{
     register unsigned int control;
     __asm("mcr p15, 0, %[zero], c1, c0, 0" : : [zero] "r"(0));
     //Disable cache
@@ -94,10 +91,9 @@ void start_mmu_C(void) {
     /* Write control register */
     __asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 }
-//
-//
-//
-void configure_mmu_C(unsigned int translation_base) {
+
+void configure_mmu_C(unsigned int translation_base) 
+{
     register unsigned int pt_addr = translation_base;
     /* Translation table 0 */
     __asm volatile("mcr p15, 0, %[addr], c2, c0, 0" : : [addr] "r" (pt_addr));
@@ -110,10 +106,9 @@ void configure_mmu_C(unsigned int translation_base) {
      */
     __asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
 }
-//
-//
-//
-void vmem_init(void) {
+
+void vmem_init(void) 
+{
     // Initialisation de la mémoire physique
     unsigned int translation_base = init_kern_translation_table();
 
@@ -129,7 +124,6 @@ void vmem_init(void) {
     // Démarrage de la MMU
     start_mmu_C();
 }
-
 
 uint32_t vmem_translate(uint32_t va, uint32_t table_base)
 {
@@ -172,9 +166,6 @@ uint32_t vmem_translate(uint32_t va, uint32_t table_base)
     return pa;
 }
 
-//
-//
-//
 uint32_t vmem_translate_ps(uint32_t va, struct pcb_s* process)
 {
     uint32_t pa; /* The result */
@@ -221,4 +212,24 @@ uint32_t vmem_translate_ps(uint32_t va, struct pcb_s* process)
     /* Physical address */
     pa = (second_level_descriptor & 0xFFFFF000) | page_index;
     return pa;
+}
+
+void* sys_mmap(unsigned int size)
+{
+    
+}
+
+void do_sys_mmap()
+{
+    
+}
+
+void sys_munmap(void * addr, unsigned int size)
+{
+
+}
+
+void do_sys_munmap()
+{
+    
 }

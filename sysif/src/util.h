@@ -38,7 +38,9 @@ enum SYS_CALL_ID {
 	SCI_GETTIME = 0x04,
 	SCI_YIELDTO = 0x05,
 	SCI_YIELD = 0x06,
-	SCI_EXIT = 0x07
+	SCI_EXIT = 0x07,
+	SCI_MMAP = 0x08,
+	SCI_MUNMAP = 0x09
 };
 
 // Enum for proc states
