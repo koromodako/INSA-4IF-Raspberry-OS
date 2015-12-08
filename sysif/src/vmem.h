@@ -5,7 +5,7 @@
 #include "sched.h"
 
 // Macros ----------------------------------------------------------------------
-#define PAGE_SIZE 4096  // En Octet = 4Ko
+#define FRAME_SIZE 4096  // En Octet = 4Ko
 
 #define FIRST_LVL_TT_INDEX_SIZE 14 // Talle de l'index pour une page de niveau 1
 #define FIRST_LVL_TT_COUN 4096 // (soit 2^12, 12 bits pour une entrée du niveau 1) Nombre d'entrées dans la table de niveau 1
@@ -18,6 +18,10 @@
 // Memory limits
 #define DEVICE_START 0x20000000
 #define DEVICE_END 0x20FFFFFF
+
+#define FREE_FRAMES_TABLE_SIZE (DEVICE_END+1)/FRAME_SIZE // 135168 en décimal
+#define FREE_FRAME 0x00
+#define LOCK_FRAME 0x01
 
 // Flags des pages
 #define TABLE_1_PAGE_FLAGS	0b000000000001
@@ -49,10 +53,18 @@ void vmem_init(void);
  *	Réalise la traduction de l'adresse logique en adresse physique
  */
 uint32_t vmem_translate(uint32_t va, uint32_t table_base);
-uint32_t vmem_translate_ps(uint32_t va, struct pcb_s* process);
+uint32_t vmem_translate_ps(uint32_t va, pcb_s* process);
 
 
 // ----------------- Memory management ---------------
+/**
+ *
+ */
+uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size);
+/**
+ *
+ */
+void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size);
 
 // Appel système : reboot ------------------------------------------------------
 /**
@@ -67,7 +79,7 @@ void do_sys_mmap();
 /**
  *	Appel système pour liberer size octet à partir de addr
  */
- void sys_munmap(void * addr, unsigned int size);
+void sys_munmap(void * addr, unsigned int size);
 /**
  *	Appel noyau pour liberer size octet à partir de addr
  */

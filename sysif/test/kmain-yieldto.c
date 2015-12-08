@@ -2,7 +2,7 @@
 #include "syscall.h"
 #include "sched.h"
 
-struct pcb_s *p1, *p2;
+pcb_s *p1, *p2;
 
 void user_process_1()
 {

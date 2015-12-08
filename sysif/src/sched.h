@@ -11,6 +11,7 @@
 // Types et structures ---------------------------------------------------------
 typedef int (func_t) (void);
 
+
 struct pcb_s {
     uint32_t registres[NB_SAVED_REGISTERS];
     func_t * lr_user;
@@ -25,9 +26,10 @@ struct pcb_s {
     func_t * entry;
     uint32_t page_table;
 };
+typedef struct pcb_s pcb_s;
 
 // Variables globales ----------------------------------------------------------
-struct pcb_s * current_process;
+pcb_s * current_process;
 
 // Gestion des processus -------------------------------------------------------
 /**
@@ -37,7 +39,7 @@ void sched_init(SCHEDULING_POLICY schedPolicy);
 /**
  *  Crée un nouveau processus en allouant de la mémoire pour ce dernier
  */
-struct pcb_s * create_process(func_t* entry, PROC_PRIORITY priority);
+pcb_s * create_process(func_t* entry, PROC_PRIORITY priority);
 /**
  *  Réalise l'election d'un nouveau processus
  */
@@ -56,11 +58,11 @@ void queue_sched_init(void);
 /**
  *  Ajoute un processus à la file simple
  */
-void queue_sched_add(struct pcb_s * newProcess);
+void queue_sched_add(pcb_s * newProcess);
 /**
  *  Réalise l'élection d'un nouveau processus depuis la file simple
  */
-struct pcb_s * queue_sched_elect(void);
+pcb_s * queue_sched_elect(void);
 /**
  *  Réalise l'élection d'un nouveau processus depuis les files de priorités
  */
@@ -79,11 +81,11 @@ void priority_queue_sched_init(void);
 /**
  *  Ajoute un processus aux files de priorité
  */
-void priority_queue_sched_add(struct pcb_s * newProcess);
+void priority_queue_sched_add(pcb_s * newProcess);
 /**
  *  Nettoye les processus terminés des files de priorité
  */
- struct pcb_s * priority_queue_sched_elect(void);
+pcb_s * priority_queue_sched_elect(void);
 /**
  *  Nettoye les processus terminés de la file simple
  */
@@ -97,11 +99,11 @@ void priority_queue_sched_termination_test(void);
 /**
  *  Appel système pour passer a un autre process si on connait l'adresse de son PCB
  */
-void sys_yieldto(struct pcb_s* dest);
+void sys_yieldto(pcb_s* dest);
 /**
  * Appel noyau pour passer a un autre process si on connait l'adresse de son PCB 
  */
-void do_sys_yieldto(struct pcb_s * context);
+void do_sys_yieldto(pcb_s * context);
 
 // Appel système : yield -------------------------------------------------------
 /**
@@ -111,7 +113,7 @@ void sys_yield(void);
 /**
  *  Appel noyau pour passer a un autre process (rendre la main)
  */
-void do_sys_yield(struct pcb_s * context);
+void do_sys_yield(pcb_s * context);
 
 // Appel système : exit --------------------------------------------------------
 /**
@@ -121,7 +123,7 @@ void sys_exit(int status);
 /**
  *  Appel noyau pour terminer un processus
  */
-void do_sys_exit(struct pcb_s * context);
+void do_sys_exit(pcb_s * context);
 
 // Handler des timer système ---------------------------------------------------
 /**

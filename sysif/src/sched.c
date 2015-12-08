@@ -7,9 +7,9 @@
 #include "asm_tools.h"
 
 // Variable globale pour le processus kmain (point d'entrée de l'OS)
-struct pcb_s kmain_process;
+pcb_s kmain_process;
 
-struct pcb_s * priority_queues[PRIORITY_NB];
+pcb_s * priority_queues[PRIORITY_NB];
 
 SCHEDULING_POLICY sched_policy;
 
@@ -38,14 +38,14 @@ void sched_init(SCHEDULING_POLICY schedPolicy)
     }
 }
 
-struct pcb_s * create_process(func_t* entry, PROC_PRIORITY priority)
+pcb_s * create_process(func_t* entry, PROC_PRIORITY priority)
 {
     if(priority < 0x00 || priority > PRIORITY_NB-1)
     {   // Valeur de priorité illégale
         PANIC();
     }
 
-    struct pcb_s * pcb = (struct pcb_s *) kAlloc(sizeof(struct pcb_s));
+    pcb_s * pcb = (pcb_s *) kAlloc(sizeof(pcb_s));
     pcb->lr_user = (func_t *) &start_current_process;
     pcb->lr_svc = (func_t *) &start_current_process;
 
@@ -112,9 +112,9 @@ void start_current_process(void)
 void queue_sched_init(void) 
 { /* Rien à faire */ }
 
-void queue_sched_add(struct pcb_s * newProcess) 
+void queue_sched_add(pcb_s * newProcess) 
 {   // On insère le processus après le processus courant dans la liste
-    struct pcb_s * nextProc = current_process->pcb_next;
+    pcb_s * nextProc = current_process->pcb_next;
     newProcess->pcb_next = nextProc;
     current_process->pcb_next = newProcess;
 }
@@ -124,7 +124,7 @@ void queue_sched_clean(void)
     while(current_process->pcb_next != current_process && 
           current_process->pcb_next->state == PS_TERMINATED) {
         // Sauvegarde du pcb à détruire
-        struct pcb_s * pcbToDestroy = current_process->pcb_next;
+        pcb_s * pcbToDestroy = current_process->pcb_next;
         // Suppression du pcb des structures de scheduling
         current_process->pcb_next = pcbToDestroy->pcb_next;
         // Libération de la mémoire allouée au proc
@@ -141,7 +141,7 @@ void queue_sched_termination_test(void)
     }
 }
 
-struct pcb_s * queue_sched_elect(void) 
+pcb_s * queue_sched_elect(void) 
 {
     return  current_process->pcb_next;
 }
@@ -156,14 +156,14 @@ void priority_queue_sched_init(void)
     int p;
     for (p = 1; p < PRIORITY_NB; ++p)
     {
-        priority_queues[p] = (struct pcb_s *) kAlloc(sizeof(struct pcb_s));
+        priority_queues[p] = (pcb_s *) kAlloc(sizeof(pcb_s));
         priority_queues[p]->pcb_next = priority_queues[p];
     }
 }
 
-void priority_queue_sched_add(struct pcb_s * newProcess)
+void priority_queue_sched_add(pcb_s * newProcess)
 {   // On insère le processus au debut de la liste de priorite
-    struct pcb_s * nextProc = priority_queues[newProcess->priority]->pcb_next;
+    pcb_s * nextProc = priority_queues[newProcess->priority]->pcb_next;
     newProcess->pcb_next = nextProc;
     priority_queues[newProcess->priority]->pcb_next = newProcess;
 }
@@ -172,12 +172,12 @@ void priority_queue_sched_clean(void)
 {
     int p;
     for(p = 0; p < PRIORITY_NB; ++p)
-    {   struct pcb_s * proc = priority_queues[p];
+    {   pcb_s * proc = priority_queues[p];
         while(proc->pcb_next != priority_queues[p] && 
               proc->state == PS_TERMINATED)
         {   
             // Sauvegarde du pcb à détruire
-            struct pcb_s * pcbToDestroy = proc->pcb_next;
+            pcb_s * pcbToDestroy = proc->pcb_next;
             // Suppression du pcb des structures de scheduling
             proc->pcb_next = pcbToDestroy->pcb_next;
             // Libération de la mémoire allouée au proc
@@ -207,7 +207,7 @@ void priority_queue_sched_termination_test(void)
 // Variable globale pour l'election dans le cas de la priorité fixe
 int elect_count = 0; // initialisation
 //
-struct pcb_s * priority_queue_sched_elect(void)
+pcb_s * priority_queue_sched_elect(void)
 {
     // Pour chaque niveau de priorité...
     int p;
@@ -251,7 +251,7 @@ struct pcb_s * priority_queue_sched_elect(void)
 }
 
 // Appel système : yieldto -----------------------------------------------------
-void sys_yieldto(struct pcb_s* dest)
+void sys_yieldto(pcb_s* dest)
 {
     // On place dest dans le registre R1
     __asm("mov r1, r0");
@@ -260,10 +260,10 @@ void sys_yieldto(struct pcb_s* dest)
     SWI(SCI_YIELDTO);
 }
 
-void do_sys_yieldto(struct pcb_s * context)
+void do_sys_yieldto(pcb_s * context)
 {
     // Dest est dans R1
-    struct pcb_s* dest = (struct pcb_s*) context->registres[1];
+    pcb_s* dest = (pcb_s*) context->registres[1];
 
     // Sauvegarde
     for (int i = 0; i < NB_SAVED_REGISTERS; ++i)
@@ -282,7 +282,7 @@ void sys_yield()
     SWI(SCI_YIELD);
 }
 
-void do_sys_yield(struct pcb_s * context)
+void do_sys_yield(pcb_s * context)
 {
     // Sauvegarde
     for (int i = 0; i < NB_SAVED_REGISTERS; ++i)
@@ -309,7 +309,7 @@ void sys_exit(int status)
     SWI(SCI_EXIT);
 }
 
-void do_sys_exit(struct pcb_s * context)
+void do_sys_exit(pcb_s * context)
 {
     current_process->state = PS_TERMINATED;
     current_process->exit_code = context->registres[1];
@@ -340,7 +340,7 @@ void __attribute__((naked)) irq_handler(void)
     SWITCH_TO_IRQ_MODE;
 
     // Récupération du pointeur de pile après la sauvegarde
-    struct pcb_s * context;
+    pcb_s * context;
     __asm("mov %0, sp" : "=r"(context));
 
     context->lr_user -= 4;
