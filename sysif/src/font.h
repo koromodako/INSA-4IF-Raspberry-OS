@@ -33,4 +33,4 @@ void advanceCursor(uint32_t width);
  */
 void checkCursor();
 
-#endif /* FONT_H_ */
+#endif
