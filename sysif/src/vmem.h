@@ -88,7 +88,7 @@ void* sys_mmap(unsigned int size);
 /**
  *	Appel noyau pour allouer size octets dans l'espace d'adressage du processus
  */
-void do_sys_mmap();
+void do_sys_mmap(pcb_s * context);
 // Appel système : reboot ------------------------------------------------------
 /**
  *	Appel système pour liberer size octet à partir de addr
