@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "kheap.h"
 #include "fb.h"
-#include "util.h"
+#include "math.h"
 
 /* trace une ligne entre deux points
 ** On trace sur un x tant que l'erreur e est pas trop importante, 

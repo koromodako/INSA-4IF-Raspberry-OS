@@ -81,7 +81,7 @@ build/%.o: src/%.s | build
 
 # édition de liens
 build/kernel.elf: $(OBJECTS) build/kmain.o
-	arm-none-eabi-ld $^ -o $@ -T src/sysif.ld -Map build/mapfile.map
+	arm-none-eabi-ld $^ -o $@ -T src/sysif.ld -Map build/mapfile.map -Lsrc/drivers/bin -lcsud
 
 # conversion de l'image pour transfert sur carte SD
 build/kernel.img: build/kernel.elf

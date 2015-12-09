@@ -3,7 +3,7 @@
 #include "font_spec.h"
 #include "kheap.h"
 #include "fb.h"
-#include "util.h"
+#include "math.h"
 
 #define FONT_TABLE_SIZE 128
 #define FONT_TABLE_START 33

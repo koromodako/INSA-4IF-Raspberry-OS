@@ -15,8 +15,12 @@ SCHEDULING_POLICY sched_policy;
 void sched_init(SCHEDULING_POLICY schedPolicy)
 {
     // Initialisation de la mémoire
+#ifdef USE_VMEM
+    vmem_init();
+#else
     kheap_init();
-
+#endif
+    
     // Initialisation du premier processus
     kmain_process.state = PS_RUNNING;
     current_process = &kmain_process;
@@ -25,8 +29,14 @@ void sched_init(SCHEDULING_POLICY schedPolicy)
     // Initialisation de la politique de scheduling
     sched_policy = schedPolicy;
 
-    queue_sched_init();
-    priority_queue_sched_init();
+switch(sched_policy) {
+        case SP_QUEUE: 
+            queue_sched_init();
+            break;
+        case SP_PRIORITY_QUEUE:
+            priority_queue_sched_init();
+            break;
+    }
 }
 
 struct pcb_s * create_process(func_t* entry, PROC_PRIORITY priority)
