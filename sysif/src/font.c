@@ -324,8 +324,6 @@ FontTable* initFont()
     return font;
 }
 
-
-
 FontCursor * initCursor(uint32_t cur_min_x, uint32_t cur_min_y, uint32_t cur_max_x, uint32_t cur_max_y)
 {
     FontCursor* cursor = (FontCursor *)kAlloc(sizeof (FontCursor));
