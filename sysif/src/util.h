@@ -69,20 +69,7 @@ typedef enum {
 	SP_PRIORITY_QUEUE
 } SCHEDULING_POLICY;
 
-// Division sur un int 64 bits
-uint64_t
-divide(uint64_t x, uint64_t y);
-
-// Division sur un int 32 bits
-uint32_t
-divide32(uint32_t x, uint32_t y);
-
-// Modulo sur un int 32 bits
-uint32_t mod32(uint32_t x, uint32_t y);
-
+// Convertir entier en string
 char* itoa(int i, char b[]);
-
-// Retourne l'arrondie supérieur d'une division
-uint32_t getUpperBoundFromDivide32(uint32_t number, uint32_t diviser);
 
 #endif

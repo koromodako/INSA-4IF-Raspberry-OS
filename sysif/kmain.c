@@ -7,6 +7,9 @@
 #include "graphics.h"
 #include "font.h"
 #include "kheap.h"
+#include "usb.h"
+#include "keyboard.h"
+#include "math.h"
 
 static FontTable * font;
 
@@ -64,10 +67,25 @@ void display_process_text_right()
         uint32_t sleep = 0;
         for (sleep = 0; sleep < 100000; sleep++);
         sys_yield();
+	}
+}
+
+void keyboard_handler_ps() {
+    for(;;)
+    {       
+        KeyboardsUpdate();
+        char c = KeyboardGetChar(0);
+        if(c != 0)
+        {
+            // Print c
+        }
+        sys_yield();
     }
 }
 
 void kmain(void) {
+    // Initialisation de l'USB
+    usb_init();
     // Initialisation du scheduler
     sched_init(SP_QUEUE);
 
@@ -81,6 +99,7 @@ void kmain(void) {
     create_process((func_t*)&display_process_info, PP_HIGH);
     create_process((func_t*)&display_process_text_left, PP_MEDIUM);
     create_process((func_t*)&display_process_text_right, PP_MEDIUM);
+    create_process((func_t*)&keyboard_handler_ps, PP_MEDIUM);
 
     // Initialisation du timer matériel pour les IRQ
     //timer_init();
