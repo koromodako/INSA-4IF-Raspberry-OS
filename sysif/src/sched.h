@@ -24,7 +24,7 @@ struct pcb_s {
     int priority;
     int exit_code;
     func_t * entry;
-    uint32_t page_table;
+    uint32_t * page_table;
 };
 typedef struct pcb_s pcb_s;
 

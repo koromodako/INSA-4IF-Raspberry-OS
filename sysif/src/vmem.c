@@ -45,9 +45,11 @@ void init_occupation_table(void)
         // Si fm_index en zone occupée 
         // code / données / structures noyaux
         int device_lower_bound = (DEVICE_START/FRAME_SIZE);
-        int kernel_upper_bound = ((uint32_t)(kernel_heap_limit)+1)/(FRAME_SIZE)
-        if(fm_index >= 0 && fm_index < kernel_upper_bound &&
-           fm_index > device_lower_bound && fm_index < FREE_FRAMES_TABLE_SIZE)
+        int kernel_upper_bound = ((uint32_t)(kernel_heap_limit)+1)/(FRAME_SIZE);
+        if( (fm_index >= 0 && 
+             fm_index < kernel_upper_bound) ||
+            (fm_index > device_lower_bound && 
+             fm_index < FREE_FRAMES_TABLE_SIZE) )
         {
             LOCK_FRAME(free_frames_table[fm_index]);
         } 
@@ -104,7 +106,50 @@ unsigned int init_kern_translation_table(void)
     return (unsigned int) (translation_base);
 }
 
+unsigned int init_ps_translation_table(void)
+{
+    // Initialisation des variables de flags
+    uint32_t device_flags = DEVICE_FLAGS;
+    uint32_t table_1_page_flags = TABLE_1_PAGE_FLAGS;
+    uint32_t table_2_page_flags = TABLE_2_PAGE_FLAGS;
 
+    // Allocation de la section contenant les adresses des pages des tables de second niveau
+    uint32_t * translation_base = (uint32_t*)kAlloc_aligned( FIRST_LVL_TT_SIZE, FIRST_LVL_TT_INDEX_SIZE );
+    // Itérateur sur la zone de mémoire allouée pour la premiere page
+    uint32_t * first_table_it = translation_base;
+
+
+    // Pour les pages du kernel -------------------------------------------
+    // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
+    // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
+    int kern_page_count = ((uint32_t)(kernel_heap_limit)+1) / (FRAME_SIZE*SECON_LVL_TT_COUN);
+
+    // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
+    init_page_section(first_table_it,
+                      kern_page_count,
+                      table_1_page_flags, 
+                      table_2_page_flags,
+                      0x0);
+
+    // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
+    first_table_it = translation_base + (DEVICE_START / (FRAME_SIZE*SECON_LVL_TT_COUN));
+
+    // Pour les pages des devices -------------------------------------------
+    // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
+    // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
+    int device_page_count = ((DEVICE_END - DEVICE_START) + 1) /(FRAME_SIZE*SECON_LVL_TT_COUN);
+
+    // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
+    // Itération sur la table 1 pour allocation table 2
+    init_page_section(first_table_it,
+                      device_page_count,
+                      table_1_page_flags, 
+                      device_flags,
+                      DEVICE_START);
+
+    // On retourne l'adresse de la page de niveau 1
+    return (unsigned int) (translation_base);
+}
 
 void vmem_init(void) 
 {
@@ -122,8 +167,97 @@ void vmem_init(void)
 
 uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size)
 {
-    // 1
-    return 0x0;
+    uint32_t * device_limit = process->page_table + (DEVICE_START / (FRAME_SIZE*SECON_LVL_TT_COUN));
+
+    // Trouver une page libre --------------------------------
+    // Iterateur sur la premiere entree de niveau 1
+    uint32_t * table_1_it = process->page_table;
+    int lvl_1_ind, lvl_2_ind;
+    int ram_overflow_flag = 0;
+    int found_flag = 0;
+    // Pour chaque entrée de niveau 1
+    for (lvl_1_ind = 0; 
+        !found_flag && lvl_1_ind < FIRST_LVL_TT_COUN; 
+        ++lvl_1_ind, ++table_1_it)
+    {   // Si l'entrée de niveau 1 est libre on sort avec lvl_2_ind à 0
+        if( ! ((*table_1_it) & 0x03) )
+        {
+            found_flag = 1;
+            lvl_2_ind = 0;
+            break;
+        }
+        else if( table_1_it > device_limit )
+        {
+            ram_overflow_flag = 1;
+            break;
+        }
+        // Sinon alors l'entrée pointe sur un niveau 2 partiellement ou completement plein 
+        else
+        {   uint32_t * table_2_it = (uint32_t*)((*table_1_it) & 0xFFFFFC00);
+            // Pour chque entrée de niveau 2
+            for (lvl_2_ind = 0; 
+                lvl_2_ind < SECON_LVL_TT_COUN; 
+                ++lvl_2_ind, ++table_2_it)
+            {
+                if( ! ((*table_1_it) & 0x03) )
+                {
+                    found_flag = 1;
+                    break;
+                }
+            }
+        }
+    }
+    // Si le ram overflow flag est levé
+    if(ram_overflow_flag)
+    {   
+        return 0x0;
+    }
+
+    // Allouer frames -----------------------------------------
+    // On calcule le nombre de frames à allouer
+    int nb_frame_to_alloc = (size/FRAME_SIZE)+1;
+    uint32_t table_2_page_flags = TABLE_2_PAGE_FLAGS;
+
+    // Première entrée
+    uint32_t * first_entry = (uint32_t*)(
+            *(process->page_table + lvl_1_ind) & 0xFFFFFC00) + 
+            lvl_2_ind;
+
+    // Pour chaque frame à allouer
+    int fta; // frame to allocate index
+    int ind_2, ind_1;
+    for(fta=0; fta < nb_frame_to_alloc; ++fta)
+    {
+        ind_2 = (lvl_2_ind + fta) % SECON_LVL_TT_COUN;
+        ind_1 = lvl_1_ind + ((lvl_2_ind+fta)/SECON_LVL_TT_COUN);
+        // Index de la premiere frame libre
+        int ff_ind = find_next_free_frame();
+        if(ff_ind == -1)
+        {
+            return 0x0;
+        }
+        // Adresse physique de la frame libre
+        uint32_t f_phy_addr = ff_ind * FRAME_SIZE;
+        // On va chercher l'entrée de niveau 2
+        uint32_t * new_entry = (uint32_t*)(
+            *(process->page_table + ind_1) & 0xFFFFFC00);
+        // On affecte l'entrée de niveau 2 décalée de l'index
+        *(new_entry+ind_2) = f_phy_addr | table_2_page_flags;
+        // On spécifie que la frame est allouée
+        LOCK_FRAME(free_frames_table[ff_ind]);
+    }    
+    return (uint8_t*)first_entry;
+}
+
+int find_next_free_frame(void) 
+{
+    int f;
+    for(f=0; f < FREE_FRAMES_TABLE_SIZE; ++f)
+    {   if(IS_FREE_FRAME(free_frames_table[f]))
+        {   return f;   
+        } 
+    }
+    return -1;
 }
 
 void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size)

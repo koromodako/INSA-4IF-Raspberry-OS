@@ -23,6 +23,7 @@
 // Macros pour gérer la table d'occupation des frames
 #define FREE_FRAME(frame) frame=0x00
 #define LOCK_FRAME(frame) frame=0x01
+#define IS_FREE_FRAME(frame) frame==0x00
 
 // Flags des pages
 #define TABLE_1_PAGE_FLAGS	0b000000000001
@@ -36,6 +37,10 @@
  *	Initialise la mémoire physique
  */
 unsigned int init_kern_translation_table(void);
+/**
+ *	Initialise la mémoire physique
+ */
+unsigned int init_ps_translation_table(void);
 /**
  *	Initialise la table d'occupation des pages
  */
@@ -70,6 +75,10 @@ uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size);
  *
  */
 void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size);
+/**
+ *	Cette fonction retourne l'index de la prochaine frame libre
+ */
+int find_next_free_frame(void) ;
 
 // Appel système : reboot ------------------------------------------------------
 /**

@@ -71,6 +71,9 @@ pcb_s * create_process(func_t* entry, PROC_PRIORITY priority)
     }
     pcb->state = PS_READY;
 
+    // Initialisation de la table de page du processus
+    pcb->page_table = (uint32_t*)init_ps_translation_table();
+
     return pcb;
 }
 
