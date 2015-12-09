@@ -262,18 +262,62 @@ int find_next_free_frame(void)
 
 void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size)
 {
-    // 2
+    // Valeur des indexes
+    uint32_t va = (uint32_t) vAddress;
+    uint32_t first_level_index = (va >> 20);
+    uint32_t second_level_index = ((va << 12) >> 24);
+
+    // Nombre de frames à libérer
+    int nb_frame_to_dealloc = (size/FRAME_SIZE)+1;
+
+    // Libération des frames ----------------------------------
+    int fta; // frame to allocate index
+    int ind_2, ind_1;
+    for(fta=0; fta < nb_frame_to_dealloc; ++fta)
+    {
+        ind_2 = (second_level_index + fta) % SECON_LVL_TT_COUN;
+        ind_1 = first_level_index + ((second_level_index+fta)/SECON_LVL_TT_COUN);
+        // On va chercher l'entrée de niveau 2
+        uint32_t * del_entry = (uint32_t*)(
+            *(process->page_table + ind_1) & 0xFFFFFC00);
+        // On affecte l'entrée de niveau 2 décalée de l'index
+        uint32_t del_addr = *(del_entry+ind_2) & 0xFFFFF000;
+        int del_frame_ind = del_addr/FRAME_SIZE; 
+        // On spécifie que la frame est libérée
+        FREE_FRAME(free_frames_table[del_frame_ind]);
+        // On écrase l'entrée de niveau 2
+        *(del_entry+ind_2) &= 0x0;
+    } 
 }
 
 void* sys_mmap(unsigned int size)
 {
-    // 4
-    return 0x0;
+    // Déplacement des registres contenant size
+    __asm("mov r2, r1\n\t"
+          "mov r1, r0");
+    // SWI
+    SWI(SCI_MMAP);
+
+    uint32_t leastSignificantBits;
+    uint32_t mostSignificantBits;
+    __asm("mov %0, r0" : "=r"(mostSignificantBits) : : "r0", "r1");
+    __asm("mov %0, r1" : "=r"(leastSignificantBits) : : "r0", "r1");
+
+    return (void*)(mostSignificantBits << 16 | leastSignificantBits);
 }
 
-void do_sys_mmap()
+void do_sys_mmap(pcb_s * context)
 {
-    // 3
+    uint32_t leastSignificantBits = context->registres[1];
+    uint32_t mostSignificantBits = context->registres[2];
+    uint32_t size = (uint32_t) mostSignificantBits << 16 | leastSignificantBits;
+
+    uint32_t addr = (uint32_t)vmem_alloc_in_userland(current_process, size);
+
+    context->registres[0] = (uint32_t)(addr >> 16);
+    // Puis dans le futur R1 les bits de poids faible
+    context->registres[1] = (uint32_t)(addr);
+
 }
 
 void sys_munmap(void * addr, unsigned int size)
