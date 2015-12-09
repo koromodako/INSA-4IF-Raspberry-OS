@@ -35,6 +35,30 @@ void init_page_section(uint32_t * table_iterator,
     }
 }
 
+void init_occupation_table(void)
+{
+    free_frames_table = (uint8_t*)kAlloc(FREE_FRAMES_TABLE_SIZE);
+
+    int fm_index;
+    for (fm_index = 0; fm_index < FREE_FRAMES_TABLE_SIZE; ++fm_index)
+    {
+        // Si fm_index en zone occupée 
+        // code / données / structures noyaux
+        int device_lower_bound = (DEVICE_START/FRAME_SIZE);
+        int kernel_upper_bound = ((uint32_t)(kernel_heap_limit)+1)/(FRAME_SIZE)
+        if(fm_index >= 0 && fm_index < kernel_upper_bound &&
+           fm_index > device_lower_bound && fm_index < FREE_FRAMES_TABLE_SIZE)
+        {
+            LOCK_FRAME(free_frames_table[fm_index]);
+        } 
+        // Sinon zone libre
+        else
+        {
+            FREE_FRAME(free_frames_table[fm_index]);
+        }
+    }
+}
+
 unsigned int init_kern_translation_table(void) 
 {
     // Initialisation des variables de flags
@@ -85,25 +109,7 @@ unsigned int init_kern_translation_table(void)
 void vmem_init(void) 
 {
     // Initialisation de la table d'occupation des frames
-    free_frames_table = (uint8_t*)kAlloc(FREE_FRAMES_TABLE_SIZE);
-
-    int fm_index;
-    for (fm_index = 0; fm_index < FREE_FRAMES_TABLE_SIZE; ++fm_index)
-    {
-        // Si fm_index en zone occupée 
-        if(fm_index > 0 && fm_index < 10 &&
-           fm_index > 0 && fm_index < 10
-           /* ... */)
-        {
-            free_frames_table[fm_index] = LOCK_FRAME;
-        } 
-        // Sinon zone libre
-        else
-        {
-            free_frames_table[fm_index] = FREE_FRAME;
-        }
-    }
-
+    init_occupation_table();
     // Initialisation de la mémoire physique
     unsigned int translation_base = init_kern_translation_table();
     // Configuration de la MMU

@@ -20,8 +20,9 @@
 #define DEVICE_END 0x20FFFFFF
 
 #define FREE_FRAMES_TABLE_SIZE (DEVICE_END+1)/FRAME_SIZE // 135168 en décimal
-#define FREE_FRAME 0x00
-#define LOCK_FRAME 0x01
+// Macros pour gérer la table d'occupation des frames
+#define FREE_FRAME(frame) frame=0x00
+#define LOCK_FRAME(frame) frame=0x01
 
 // Flags des pages
 #define TABLE_1_PAGE_FLAGS	0b000000000001
@@ -35,6 +36,10 @@
  *	Initialise la mémoire physique
  */
 unsigned int init_kern_translation_table(void);
+/**
+ *	Initialise la table d'occupation des pages
+ */
+void init_occupation_table(void);
 /**
  *	Démarre la MMU
  */
