@@ -6,20 +6,20 @@
 
 // General usage of driver
 
-    //Call UsbInitialise
-    //Call UsbCheckForChange
-    //Call KeyboardCount
-    //If this is 0, go to 2.
-    //For each keyboard you support:
-    //    Call KeyboardGetAddress
-    //    Call KeybordGetKeyDownCount
-    //    For each key down:
-    //        Check whether or not it has just been pushed
-    //        Store that the key is down
-    //    For each key stored:
-    //        Check whether or not key is released
-    //        Remove key if released
-    //Perform actions based on keys pushed/released
+    //1. Call UsbInitialise
+    //2. Call UsbCheckForChange
+    //3. Call KeyboardCount
+    //4. If this is 0, go to 2.
+    //5. For each keyboard you support:
+    //    1. Call KeyboardGetAddress
+    //    2. Call KeybordGetKeyDownCount
+    //    3. For each key down:
+    //        1. Check whether or not it has just been pushed
+    //        2. Store that the key is down
+    //    4. For each key stored:
+    //        1. Check whether or not key is released
+    //        2. Remove key if released
+    //6. Perform actions based on keys pushed/released
     //Go to 2.
 
 // Variables globales
@@ -64,6 +64,7 @@ char shiftKeys[] =
 //  KeyboardUpdate
 void KeyboardsUpdate(void) 
 {
+    UsbCheckForChange();
     // Pour chaque clavier
     u32 kbd_ind;
     for ( kbd_ind = 0; kbd_ind < min(KeyboardCount(), KEYBOARDS_LIMIT); ++kbd_ind)
@@ -75,7 +76,7 @@ void KeyboardsUpdate(void)
         {
             // Sauvegarde des KEYDOWN_BUFFER_SIZE touches appuyées
             u32 i;
-            for (i = 0; i < KEYDOWN_BUFFER_SIZE; ++i)
+            for (i = 0; i < min(KEYDOWN_BUFFER_SIZE, KeyboardCount(kbd_addr)); ++i)
             {   
                 keys[kbd_ind][i] = KeyboardGetKeyDown(kbd_addr, i);
             }
@@ -104,7 +105,6 @@ int KeyWasDown(u16 key) {
 
 char KeyboardGetChar()
 {
-    UsbCheckForChange();
     // Pour chaque clavier
     u32 kbd_ind;
     for ( kbd_ind = 0; kbd_ind < min(KeyboardCount(), KEYBOARDS_LIMIT); ++kbd_ind)

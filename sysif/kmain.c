@@ -17,7 +17,6 @@ void display_process_info()
 {
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
     drawLetters(cursor, font, "Hello World !\n");
-    drawLetters(cursor, font, "Nombre de claviers : ");
     char * resolutionX = (char *)kAlloc(sizeof (char) * 12);
     char * resolutionY = (char *)kAlloc(sizeof (char) * 12);
     itoa(getResolutionX() + 1, resolutionX);
@@ -35,8 +34,7 @@ void display_process_info()
 void display_process_info_keyboard()
 {
     uint32_t x = divide32(getResolutionX(), 2)+10;
-    FontCursor * cursorNbClavier = initCursor(x, 10, getResolutionX()-10, 30);
-    FontCursor * cursorNbTouches = initCursor(x, 30, getResolutionX()-10, 50);
+    FontCursor * cursorNbClavier = initCursor(x, 10, getResolutionX()-10, 60);
 
     char * nbClavierString = (char *)kAlloc(sizeof (char) * 14);
     char * nbTouchesString = (char *)kAlloc(sizeof (char) * 14);
@@ -44,40 +42,29 @@ void display_process_info_keyboard()
     uint32_t nbClavier = getNbKeyboard();
     uint32_t nbTouches = getKeyDownCount();
 
-    drawLetters(cursorNbClavier, font, "Nombre de claviers : ");
-    uint32_t cursorNbClavierX = cursorNbClavier->cursor_x;
-    uint32_t cursorNbClavierY = cursorNbClavier->cursor_y;
-    itoa(nbClavier, nbClavierString);
-    drawLetters(cursorNbClavier, font, nbClavierString);
+    uint32_t firstTime = 1;
 
-    drawLetters(cursorNbTouches, font, "Nombre de touches enfoncees : ");
-    uint32_t cursorNbTouchesX = cursorNbTouches->cursor_x;
-    uint32_t cursorNbTouchesY = cursorNbTouches->cursor_y;
-    itoa(nbTouches, nbTouchesString);
-    drawLetters(cursorNbTouches, font, nbTouchesString);
-
-    do {
+    while(1){
         uint32_t sleep = 0;
-        for (sleep = 0; sleep < 100000; sleep++);
-        sys_yield();
 
-        if (nbClavier != getNbKeyboard()) {
-            draw(cursorNbClavierX, cursorNbClavierY, getResolutionX()-10, 30, 0, 0, 0);
-            cursorNbClavier->cursor_x = cursorNbClavierX;
-            cursorNbClavier->cursor_y = cursorNbClavierY;
+        if (firstTime == 1 || nbClavier != getNbKeyboard() || nbTouches != getKeyDownCount()) {
+            firstTime = 0;
+            draw(x, 10, getResolutionX()-10, 60, 0, 0, 0);
+            cursorNbClavier->cursor_x = x;
+            cursorNbClavier->cursor_y = 10;
             nbClavier = getNbKeyboard();
             itoa(nbClavier, nbClavierString);
+            drawLetters(cursorNbClavier, font, "Nb de claviers : ");
             drawLetters(cursorNbClavier, font, nbClavierString);
-        }
-        if (nbTouches != getKeyDownCount()) {
-            draw(cursorNbTouchesX, cursorNbTouchesY, getResolutionX()-10, 50, 0, 0, 0);
-            cursorNbTouches->cursor_x = cursorNbTouchesX;
-            cursorNbTouches->cursor_y = cursorNbTouchesY;
-            nbTouches = getKeyDownCount();
+            drawLetters(cursorNbClavier, font, "\n");
             itoa(nbTouches, nbTouchesString);
-            drawLetters(cursorNbTouches, font, nbTouchesString);
+            drawLetters(cursorNbClavier, font, "Nb de touches enfoncees : ");
+            drawLetters(cursorNbClavier, font, nbTouchesString);
         }
-    } while(1);
+
+        for (sleep = 0; sleep < 100000; sleep++);
+        sys_yield();
+    };
 
 }
 
