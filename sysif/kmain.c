@@ -31,10 +31,6 @@ void display_process_info()
 
     drawLine(10,70,getResolutionX()-10, 70);
     drawLine(divide32(getResolutionX(), 2), 80, divide32(getResolutionX(), 2), getResolutionY()-10);
-
-    while (1) {
-        sys_yield();
-    }
 }
 
 void display_process_text_left()
@@ -73,7 +69,7 @@ void display_process_text_right()
 
 void kmain(void) {
     // Initialisation du scheduler
-    sched_init(SP_PRIORITY_QUEUE);
+    sched_init(SP_QUEUE);
 
     // Initialisation des LEDs ...
     hw_init();

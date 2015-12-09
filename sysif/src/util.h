@@ -12,7 +12,8 @@ void kernel_panic(char* string, int number);
 // ------------------------ Nos fonctions utils
 // Attention, cette macro fonctionne seulement avec GCC >= 4.8.2
 #define SWI(syscallid) \
-	__asm("mov r0, %0\n\tswi #0" : : "r"(syscallid))
+        __asm("mov r0, %0\n\t" \
+          "swi #0" : : "r"(syscallid))
 
 // Macros for stacking registers
 #define STACK_REGS __asm("stmfd sp!, {r0-r12, lr}")
