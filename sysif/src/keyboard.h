@@ -6,7 +6,7 @@
 // Constantes -----------------------------
 #define UPDATE_DEPTH_LIMIT 2
 #define KEYDOWN_BUFFER_SIZE 6
-#define KEYBOARDS_LIMIT 1
+#define KEYBOARDS_LIMIT 2
 
 
 // Fonctions ------------------------------
@@ -21,6 +21,14 @@ int KeyWasDown(u16 key);
 /**
  * Cette fonction retourne le caractere correspondant à la derniere touche enfoncée
  */
-char KeyboardGetChar(u32 keyboardIndex);
+char KeyboardGetChar();
+
+void KeyboardLedsOn();
+
+void KeyboardLedsOff();
+
+u32 getNbKeyboard();
+
+u32 getKeyDownCount();
 
 #endif //KEYBOARD_H
