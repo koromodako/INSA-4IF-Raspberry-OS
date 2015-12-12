@@ -61,6 +61,41 @@ char shiftKeys[] =
 
 // Fonctions ---------------------------------------------------------
 
+    //1. Call UsbInitialise
+    //2. Call UsbCheckForChange
+    //3. Call KeyboardCount
+    //4. If this is 0, go to 2.
+    //5. For each keyboard you support:
+    //    1. Call KeyboardGetAddress
+    //    2. Call KeybordGetKeyDownCount
+    //    3. For each key down:
+    //        1. Check whether or not it has just been pushed
+    //        2. Store that the key is down
+    //    4. For each key stored:
+    //        1. Check whether or not key is released
+    //        2. Remove key if released
+    //6. Perform actions based on keys pushed/released
+    //Go to 2.
+
+char keyboardCall(){
+    UsbCheckForChange();
+    char ret = 'a';
+    if(KeyboardCount() > 0) {
+        u32 kbd_ind;
+        for(kbd_ind = 0; kbd_ind < KeyboardCount(); ++kbd_ind) {
+          u32 kbd_addr = KeyboardGetAddress(kbd_ind);
+          u32 key_count = KeyboardGetKeyDownCount(kbd_addr);
+          u32 key ;
+          for(key = 0; key  < key_count; ++key) {
+             ret = normalKeys[KeyboardGetKeyDown(kbd_addr, key)];
+          }
+        }
+    }
+    return ret;
+}
+
+
+
 //  KeyboardUpdate
 void KeyboardsUpdate(void) 
 {
@@ -76,13 +111,12 @@ void KeyboardsUpdate(void)
         {
             // Sauvegarde des KEYDOWN_BUFFER_SIZE touches appuyées
             u32 i;
-            for (i = 0; i < min(KEYDOWN_BUFFER_SIZE, KeyboardCount(kbd_addr)); ++i)
-            {   
+            for (i = 0; i < KeyboardCount(kbd_addr); ++i) {   
                 keys[kbd_ind][i] = KeyboardGetKeyDown(kbd_addr, i);
             }
             // Verification de l'etat du clavier
-            if(KeyboardPoll(kbd_addr) != 0)
-            {   return; // Le clavier a probablement été deconnecté
+            if(KeyboardPoll(kbd_addr) != 0) {
+               return; // Le clavier a probablement été deconnecté
             }
         }
     }

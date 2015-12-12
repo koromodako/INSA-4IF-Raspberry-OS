@@ -10,6 +10,9 @@
 
 
 // Fonctions ------------------------------
+
+char keyboardCall();
+
 /**
  *	Cette fonction met en mémoire les 6 dernières touches appuyées de chaque clavier
  */
