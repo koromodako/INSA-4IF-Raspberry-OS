@@ -10,6 +10,7 @@
 #include "usb.h"
 #include "keyboard.h"
 #include "math.h"
+#include "drivers/usb/csud/include/device/hid/keyboard.h"
 
 static FontTable * font;
 
@@ -71,12 +72,9 @@ void display_process_info_keyboard()
 void display_process_text_left()
 {
     FontCursor * cursorLeft = initCursor(10, 90, divide32(getResolutionX(), 2)-10, getResolutionY()-10);
-    for(;;)
-    {
-        KeyboardsUpdate();
-        char c = KeyboardGetChar();
-        if(c != 0)
-        {
+    for(;;) {
+        char c = keyboardCall();
+        if(c != 'a') {
             drawLetter(cursorLeft, font, c);
             led_switch();
         }
