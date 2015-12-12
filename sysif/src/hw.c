@@ -8,8 +8,7 @@
  * ********** Timer **********
  * ***************************/
 uint64_t
-get_date_ms()
-{
+get_date_ms() {
 #if RPI
     uint32_t date_lowbits = Get32(CLO);
     uint64_t date_highbits = (uint64_t) Get32(CHI);
@@ -22,26 +21,23 @@ get_date_ms()
 }
 
 void
-set_date_ms(uint64_t date_ms)
-{
-  uint64_t date = date_ms * SYS_TIMER_CLOCK_div_1000;
-  uint32_t date_lowbits = date & (0x0000FFFF);
-  uint32_t date_highbits = date >> 32;
-  Set32(CLO, date_lowbits);
-  Set32(CHI, date_highbits);
+set_date_ms(uint64_t date_ms) {
+    uint64_t date = date_ms * SYS_TIMER_CLOCK_div_1000;
+    uint32_t date_lowbits = date & (0x0000FFFF);
+    uint32_t date_highbits = date >> 32;
+    Set32(CLO, date_lowbits);
+    Set32(CHI, date_highbits);
 }
 
 void
-set_next_tick(uint32_t time_ms)
-{
+set_next_tick(uint32_t time_ms) {
     uint32_t date_lowbits = Get32(CLO);
-    date_lowbits += (uint32_t) (time_ms * SYS_TIMER_CLOCK_div_1000) ;
+    date_lowbits += (uint32_t) (time_ms * SYS_TIMER_CLOCK_div_1000);
     Set32(C1, date_lowbits);
 }
 
 void
-set_next_tick_default()
-{
+set_next_tick_default() {
     uint32_t date_lowbits = Get32(CLO);
     date_lowbits += DEFAULT_TIMER_INTERVAL;
     Set32(C1, date_lowbits);
@@ -49,8 +45,7 @@ set_next_tick_default()
 
 /* Use *system timer* peripheral -> compare module CM1 */
 void
-timer_init()
-{
+timer_init() {
     /* 10 ms seems good */
     set_next_tick_default();
 
@@ -67,58 +62,49 @@ timer_init()
 static unsigned int led_state = 0U;
 
 void
-led_on(void)
-{
-    unsigned int *gpclr0_ptr = ((unsigned int*)GPCLR0);
+led_on(void) {
+    unsigned int *gpclr0_ptr = ((unsigned int*) GPCLR0);
     *gpclr0_ptr = *gpclr0_ptr | 0x10000U;
     led_state = 1;
 }
 
 void
-led_off(void)
-{
-    unsigned int *gpclr0_ptr = ((unsigned int*)GPSET0);
+led_off(void) {
+    unsigned int *gpclr0_ptr = ((unsigned int*) GPSET0);
     *gpclr0_ptr = *gpclr0_ptr | 0x10000U;
     led_state = 0;
 }
 
 void
-led_switch(void)
-{
-    if ((led_state & 1U) == 0U)
-    {
+led_switch(void) {
+    if ((led_state & 1U) == 0U) {
         led_off();
-    }
-    else
-    {
+    } else {
         led_on();
     }
 }
 
 unsigned int
-led_status(void)
-{
+led_status(void) {
     return led_state;
 }
 
 void
-led_init(void)
-{
-    unsigned int *gpfsel1_ptr = ((unsigned int*)GPFSEL1);
+led_init(void) {
+    unsigned int *gpfsel1_ptr = ((unsigned int*) GPFSEL1);
     *gpfsel1_ptr = *gpfsel1_ptr | 0x40000U;
     led_off();
 }
 
 void
-led_blink(void)
-{
-    int i =0;
+led_blink(void) {
+    int i = 0;
     int waiting = 0;
     for (i = 0; i < 10; i++) {
         led_on();
         for (waiting = 0; waiting < 1000; waiting++);
         led_off();
-        for (waiting = 0; waiting < 1000; waiting++);                
+        for (waiting = 0; waiting < 1000; waiting++);
     }
 }
 
@@ -126,8 +112,7 @@ led_blink(void)
  * ********** init_hw() **************
  * ***********************************/
 void
-hw_init()
-{
+hw_init() {
     /* Init uart */
     uart_init();
 
@@ -136,7 +121,6 @@ hw_init()
 }
 
 void
-terminate_kernel()
-{
+terminate_kernel() {
     log_str("Exit kernel\n");
 }
