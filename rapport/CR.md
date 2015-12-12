@@ -162,3 +162,19 @@ Size
 
 #### Q9-5)
 
+#### Q9-6)
+
+#### Q9-7)
+
+#### Q9-8)
+
+#### Q9-9)
+
+#### Q9-10)
+
+#### Q9-11)
+
+#### Q9-12)
+
+Les pages doivent être allouée consécutivement dans l'espace d'adressage virtuel du processus car le fonctionnement MMU l'impose.
+Les frames ne sont pas soumises à cette contrainte.
