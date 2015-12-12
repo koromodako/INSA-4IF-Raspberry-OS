@@ -8,6 +8,6 @@
 #define DEBUG 1
 // Commentez cette ligne si vous ne voulez pas 
 // utiliser la memoire virtuelle
-#define USE_VMEM
+//#define USE_VMEM
 
 #endif

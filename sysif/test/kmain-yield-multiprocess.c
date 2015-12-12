@@ -26,7 +26,7 @@ void user_process_3() {
 
 void kmain(void) {
     
-    sched_init(SP_QUEUE);
+    sched_init(SP_SIMPLE);
 
     create_process((func_t*)&user_process_1, PP_MEDIUM);
     create_process((func_t*)&user_process_2, PP_MEDIUM);
