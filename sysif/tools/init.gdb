@@ -23,8 +23,8 @@ b *irq_handler
 b *user_process_1
 b *user_process_2
 b *user_process_3
-b *elect
 b *priority_sched_elect
+b *simple_sched_elect
 
 
 source utils.gdb

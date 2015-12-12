@@ -26,7 +26,7 @@ void user_process_3() {
 
 void kmain(void) {
     // Initialisation du scheduler
-    sched_init(SP_PRIORITY);
+    sched_init(SP_SIMPLE);
     // Creation des processus
     create_process((func_t*)&user_process_1, PP_HIGH);
     create_process((func_t*)&user_process_2, PP_MEDIUM);
