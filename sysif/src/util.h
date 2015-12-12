@@ -27,12 +27,6 @@ void kernel_panic(char* string, int number);
 #define SWITCH_TO_ABORT_MODE __asm("cps 0b10111")
 #define SWITCH_TO_SYSTEM_MODE __asm("cps 0b11111")
 
-// Macros for freeing memory space
-// <!> Destruction en deux temps car on ne peut pas prévoir comment est gérée la mémoire  
-#define MEM_FREE(pcb) \
-	kFree((void *)pcbToDestroy->sp_start, SIZE_STACK_PROCESS); \
-	kFree((void *)pcbToDestroy, sizeof(struct pcb_s))
-
 // Enum for syscall ids
 enum SYS_CALL_ID {
 	SCI_REBOOT = 0x01,
@@ -41,32 +35,34 @@ enum SYS_CALL_ID {
 	SCI_GETTIME = 0x04,
 	SCI_YIELDTO = 0x05,
 	SCI_YIELD = 0x06,
-	SCI_EXIT = 0x07
+	SCI_EXIT = 0x07,
+	SCI_MMAP = 0x08,
+	SCI_MUNMAP = 0x09
 };
 
 // Enum for proc states
-enum PROC_STATE {
+typedef enum {
 	PS_RUNNING = 0x01,
 	PS_READY = 0x02,
 	PS_TERMINATED = 0X03
-};
+} PROCESS_STATE;
 
 // Nombre de niveaux de priorité
-#define PRIORITY_NB 6
+#define PRIORITY_COUNT 6
 // Enum proc priority
 typedef enum {
-	PP_ROOT = 0x00,
+	PP_KERNEL = 0x00,
 	PP_ULTRA_HIGH = 0x01,
 	PP_HIGH = 0x02,
 	PP_MEDIUM = 0x03,
 	PP_LOW = 0x04,
 	PP_ULTRA_LOW = 0x05
-} PROC_PRIORITY;
+} PROCESS_PRIORITY;
 
 // Enum proc sheduling policy
 typedef enum {
-	SP_QUEUE,
-	SP_PRIORITY_QUEUE
+	SP_SIMPLE = 0x01,
+	SP_PRIORITY = 0x02
 } SCHEDULING_POLICY;
 
 // Convertir entier en string

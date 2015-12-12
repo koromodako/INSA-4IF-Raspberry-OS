@@ -17,7 +17,7 @@ void user_process()
 
 void kmain( void )
 {
-    sched_init(SP_QUEUE);
+    sched_init(SP_SIMPLE);
 
     int i;
     for(i=0;i<NB_PROCESS;i++)

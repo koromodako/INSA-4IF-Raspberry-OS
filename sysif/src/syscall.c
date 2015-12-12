@@ -3,6 +3,7 @@
 #include "hw.h"
 #include "sched.h"
 #include "asm_tools.h"
+#include "vmem.h"
 #include <stdint.h>
 
 // Appel système : reboot ------------------------------------------------------
@@ -50,7 +51,7 @@ void sys_settime(uint64_t date_ms)
     SWI(SCI_SETTIME);
 }
 
-void do_sys_settime(struct pcb_s * context)
+void do_sys_settime(pcb_s * context)
 {
     // date_ms est dans R1 et R2
     // (deux segments car uint64_t en utilise deux)
@@ -81,7 +82,7 @@ uint64_t sys_gettime()
     return (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 }
 
-void do_sys_gettime(struct pcb_s * context)
+void do_sys_gettime(pcb_s * context)
 {
     // On récupère date_ms
     uint64_t date_ms = get_date_ms();
@@ -112,7 +113,7 @@ void __attribute__((naked)) swi_handler()
     SWITCH_TO_SVC_MODE;
 
     // Récupération du pointeur de pile après la sauvegarde
-    struct pcb_s * context;
+    pcb_s * context;
     __asm("mov %0, sp" : "=r"(context));
 
     // Numéro d'appel système
@@ -127,6 +128,8 @@ void __attribute__((naked)) swi_handler()
         case SCI_YIELDTO: do_sys_yieldto(context); break;
         case SCI_YIELD: do_sys_yield(context); break;
         case SCI_EXIT: do_sys_exit(context); break;
+        case SCI_MMAP: do_sys_mmap(context); break;
+        case SCI_MUNMAP: do_sys_munmap(); break;
         default: PANIC(); break;
     }
 

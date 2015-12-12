@@ -99,8 +99,9 @@ void kmain(void) {
 
     // Initialisation de l'USB
     usb_init();
+
     // Initialisation du scheduler
-    sched_init(SP_QUEUE);
+    sched_init(SP_SIMPLE);
 
     // Initialisation des LEDs ...
     hw_init();

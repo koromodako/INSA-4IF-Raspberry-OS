@@ -2,7 +2,7 @@
 #include "syscall.h"
 #include "sched.h"
 
-struct pcb_s *p1, *p2;
+pcb_s *p1, *p2;
 
 void user_process_1()
 {
@@ -26,7 +26,7 @@ void user_process_2()
 
 void kmain( void )
 {    
-    sched_init(SP_QUEUE);
+    sched_init(SP_SIMPLE);
     
     p1=create_process((func_t*)&user_process_1, PP_MEDIUM);
     p2=create_process((func_t*)&user_process_2, PP_MEDIUM);
