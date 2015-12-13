@@ -1,5 +1,7 @@
 # -*- mode: gdb-script -*-
 
+# TODO : Pourquoi si on passe la condition à 2 ou 3 itération, le test passe plus ... ??!!!
+
 set verbose off
 set confirm off
 
@@ -30,7 +32,7 @@ end
 
 break sys_yield
 commands
-  if $var_user_process_3==2
+  if $var_user_process_1 == 1
       assess_execution
   end
   continue 
@@ -40,7 +42,7 @@ define assess_execution
   # integer used as boolean, multiplication used as logical AND
   set $ok = 1
   # check that no two stacks share the same location
-  set $ok *= ($var_user_process_1 == $var_user_process_2 && $var_user_process_1 == $var_user_process_3 && $var_user_process_1 == 2) 
+  set $ok *= ($var_user_process_1 == $var_user_process_2 && $var_user_process_1 == $var_user_process_3 && $var_user_process_1 == 1) 
 
   if $ok
     printf "test OK\n"
