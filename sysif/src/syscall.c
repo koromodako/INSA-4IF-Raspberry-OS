@@ -100,8 +100,15 @@ void do_sys_gettime(pcb_s * context)
 
 void __attribute__((naked)) swi_handler()
 {
+    // Stop des interruptions IRQ
+    DISABLE_IRQ();
+
     // Sauvegarde des registres et de LR
     STACK_REGS;
+
+    // Récupération du pointeur de pile après la sauvegarde
+    pcb_s * context;
+    __asm("mov %0, sp" : "=r"(context));
 
     // On veut sauvegarder SPSR
     __asm("mrs %0, spsr" : "=r"(current_process->cpsr));
@@ -112,9 +119,8 @@ void __attribute__((naked)) swi_handler()
     __asm("mov %0, sp" : "=r"(current_process->sp));
     SWITCH_TO_SVC_MODE;
 
-    // Récupération du pointeur de pile après la sauvegarde
-    pcb_s * context;
-    __asm("mov %0, sp" : "=r"(context));
+    // Sauvegarde de LR_SWI dans LR_SVC
+    current_process->lr_svc = context->lr_user;
 
     // Numéro d'appel système
     int syscallId = context->registres[0];
@@ -133,6 +139,9 @@ void __attribute__((naked)) swi_handler()
         default: PANIC(); break;
     }
 
+    // Restauration LR_SWI
+    context->lr_user = current_process->lr_svc;
+
     // Restauration de SP_USER (pas LR_USER car c'est toujours le même)
     SWITCH_TO_SYSTEM_MODE;
     __asm("mov lr, %0" : : "r"(current_process->lr_user));
@@ -141,6 +150,9 @@ void __attribute__((naked)) swi_handler()
 
     // On restaure SPSR
     __asm("msr spsr, %0" : : "r"(current_process->cpsr));
+
+    // Remise en fonction de l'IRQ
+    ENABLE_IRQ();
 
     UNSTACK_REGS;
 }

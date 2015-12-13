@@ -62,7 +62,6 @@ void display_process_info_keyboard() {
         }
 
         for (sleep = 0; sleep < 100000; sleep++);
-        sys_yield();
     };
 
 }
@@ -75,7 +74,6 @@ void display_process_text_left() {
             drawLetter(cursorLeft, font, c);
             led_switch();
         //}
-        sys_yield();
     }
 }
 
@@ -91,7 +89,6 @@ void display_process_text_right() {
 
         uint32_t sleep = 0;
         for (sleep = 0; sleep < 100000; sleep++);
-        sys_yield();
     }
 }
 
@@ -116,8 +113,8 @@ void kmain(void) {
     create_process((func_t*) & display_process_text_right, PP_MEDIUM);
 
     // Initialisation du timer matériel pour les IRQ
-    //timer_init();
-    //ENABLE_IRQ();
+    timer_init();
+    ENABLE_IRQ();
 
     // switch CPU to USER mode
     SWITCH_TO_USER_MODE;
