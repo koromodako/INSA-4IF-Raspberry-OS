@@ -1,8 +1,111 @@
-#############################################################################
-# 4IF SEA "SysIF" Makefile
-#############################################################################
+################################################################################
+## 4IF SEA "SysIF" Makefile - Blehhhxanome - Raspberry OS
+################################################################################
+
+
+#### Règles par défaut #########################################################
 
 default: all
+
+#### Configuration #############################################################
+
+BUILDDIR = build
+SOURCEDIR = src
+TOOLSDIR = tools
+LIBDIR = lib
+SDCARDDIR = /media/antitoine/boot
+UMOUNTDEV = /dev/mmcblk0p1 /dev/mmcblk0p2
+
+# options à passer à la fois au compilateur C et à l'assembleur
+COMMON_FLAGS=-mcpu=arm1176jzf-s
+# options à passer au compilateur
+CFLAGS_ALL=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
+# options à passer au compilateur C si QEMU
+CFLAGS_QEMU=$(CFLAGS_ALL) -DQEMU
+# options à passer au compilateur C
+CFLAGS_STD=$(CFLAGS_ALL)
+
+
+#### Variables calculées #######################################################
+
+# non-default usage: "make KMAIN=test/my-kmain.c" 
+KMAIN ?= ./kmain.c
+# Object files (excluding kmain)
+OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs])))))
+
+# check whether kmain does exists. typically this would get triggered
+# by a command like "make KMAIN=" (i.e. with no value for KMAIN)
+ifneq "$(shell test -f ''${KMAIN} && echo yes || echo no)" "yes"
+    $(error no such file: "${KMAIN}")
+endif
+
+
+#### Phony #####################################################################
+
+# check whether we're dealing with a different kmain.c than last time:
+# either updated/modified, or maybe another file, located somewhere else
+ifneq "$(shell md5sum ${KMAIN})" "$(shell test -f $(BUILDDIR)/kmain.md5 && cat $(BUILDDIR)/kmain.md5)"
+  # if so, then our kmain.o has to be recompiled
+  .PHONY: $(BUILDDIR)/kmain.o
+endif
+
+# nettoyage: effacer tous les fichiers générés
+.PHONY:clean test launch
+
+#### Règles ####################################################################
+
+all: kernel_for_qemu kernel_for_sdcard
+
+remake: clean all
+
+clean:
+	rm -rf $(BUILDDIR)
+
+kernel_for_qemu: CFLAGS=$(CFLAGS_QEMU) 
+kernel_for_qemu: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.list
+
+kernel_for_sdcard: CFLAGS=$(CFLAGS_STD) 
+kernel_for_sdcard: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.img 
+
+put_img_in_sdcard : kernel_for_sdcard
+	cp $(BUILDDIR)/kernel.img $(SDCARDDIR)/kernel.img && umount $(UMOUNT)
+
+launch: kernel_for_qemu
+	make -C $(TOOLSDIR)/
+
+## Build
+
+$(BUILDDIR):
+	mkdir -p $(BUILDDIR)
+
+# compilation C vers ELF
+$(BUILDDIR)/%.o: $(SOURCEDIR)/%.c $(wildcard $(SOURCEDIR)/**.h) | $(BUILDDIR)
+	arm-none-eabi-gcc $(COMMON_FLAGS) ${CFLAGS} $< -c -o $@
+
+# compilation du point d'entrée 
+$(BUILDDIR)/kmain.o: $(KMAIN) $(wildcard $(SOURCEDIR)/**.h)
+	arm-none-eabi-gcc $(COMMON_FLAGS) ${CFLAGS} -I $(SOURCEDIR) $< -c -o $@
+	@#"let's silently remember the checksum of the most recent kmain.c we compiled"
+	@md5sum $(KMAIN) > $(BUILDDIR)/kmain.md5
+
+# assemblage .s vers ELF
+$(BUILDDIR)/%.o: $(SOURCEDIR)/%.s | $(BUILDDIR)
+	arm-none-eabi-as -g $(COMMON_FLAGS) $< -c -o $@
+
+# édition de liens
+$(BUILDDIR)/kernel.elf: $(OBJECTS) $(BUILDDIR)/kmain.o
+	arm-none-eabi-ld $^ -o $@ -T $(SOURCEDIR)/sysif.ld -Map $(BUILDDIR)/mapfile.map -L$(LIBDIR) -lcsud
+
+# conversion de l'image pour transfert sur carte SD
+$(BUILDDIR)/kernel.img: $(BUILDDIR)/kernel.elf
+	arm-none-eabi-objcopy $^ -O binary $@
+
+# désassemblage
+$(BUILDDIR)/kernel.list: $(BUILDDIR)/kernel.elf
+	arm-none-eabi-objdump -d -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
+
+
+#### Tests #####################################################################
 
 test: 
 	@echo   "+----------------------------------------------------------------------------------"
@@ -21,80 +124,3 @@ test:
 	@printf "| 11: Yield Round Robin Distinct Stacks Without Exit ... "						&& ./tools/run-test.sh test/kmain-yield.c test/round-robin-distinct-stacks.gdb | tail -1
 	@printf "| 12: Yield Stack Scheduling With Time Interruption (it's a long test) ... "	&& ./tools/run-test.sh test/kmain-yield-multiprocess.c test/stack-scheduling-time-interruption.gdb | tail -1
 	@echo   "+----------------------------------------------------------------------------------"
-
-# options à passer au compilateur C si QEMU
-CFLAGS_QEMU=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -DQEMU
-# options à passer au compilateur C
-CFLAGS_STD=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
-
-all: kernel_for_qemu kernel_for_sdcard
-
-kernel_for_qemu: CFLAGS=$(CFLAGS_QEMU) 
-kernel_for_qemu: build/kernel.elf build/kernel.list
-
-kernel_for_sdcard: CFLAGS=$(CFLAGS_STD) 
-kernel_for_sdcard: build/kernel.elf build/kernel.img 
-
-put_img_in_sdcard : kernel_for_sdcard kernel_for_sdcard
-	cp build/kernel.img /media/antitoine/boot/kernel.img && umount /dev/mmcblk0p1 && umount /dev/mmcblk0p2
-
-remake: clean all
-
-# options à passer à la fois au compilateur C et à l'assembleur
-COMMON_FLAGS=-mcpu=arm1176jzf-s
-
-# Object files (excluding kmain)
-OBJECTS=$(addsuffix .o,  $(addprefix build/, $(basename $(notdir $(wildcard src/*.[cs])))))
-
-# non-default usage: "make KMAIN=test/my-kmain.c" 
-KMAIN ?= ./kmain.c
-
-# check whether kmain does exists. typically this would get triggered
-# by a command like "make KMAIN=" (i.e. with no value for KMAIN)
-ifneq "$(shell test -f ''${KMAIN} && echo yes || echo no)" "yes"
-    $(error no such file: "${KMAIN}")
-endif
-
-# check whether we're dealing with a different kmain.c than last time:
-# either updated/modified, or maybe another file, located somewhere else
-ifneq "$(shell md5sum ${KMAIN})" "$(shell test -f build/kmain.md5 && cat build/kmain.md5)"
-  # if so, then our kmain.o has to be recompiled
-  .PHONY: build/kmain.o
-endif
-
-build:
-	mkdir -p build
-
-# compilation C vers ELF
-build/%.o: src/%.c $(wildcard src/*.h) | build
-	arm-none-eabi-gcc $(COMMON_FLAGS) ${CFLAGS} $< -c -o $@
-
-# compilation du point d'entrée 
-build/kmain.o: $(KMAIN) $(wildcard src/*.h)
-	arm-none-eabi-gcc $(COMMON_FLAGS) ${CFLAGS} -I src $< -c -o $@
-	@#"let's silently remember the checksum of the most recent kmain.c we compiled"
-	@md5sum $(KMAIN) > build/kmain.md5
-
-# assemblage .s vers ELF
-build/%.o: src/%.s | build
-	arm-none-eabi-as -g $(COMMON_FLAGS) $< -c -o $@
-
-# édition de liens
-build/kernel.elf: $(OBJECTS) build/kmain.o
-	arm-none-eabi-ld $^ -o $@ -T src/sysif.ld -Map build/mapfile.map -Lsrc/drivers/bin -lcsud
-
-# conversion de l'image pour transfert sur carte SD
-build/kernel.img: build/kernel.elf
-	arm-none-eabi-objcopy $^ -O binary $@
-
-# désassemblage
-build/kernel.list: build/kernel.elf
-	arm-none-eabi-objdump -d -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
-
-launch:
-	make -C tools/
-
-# nettoyage: effacer tous les fichiers générés
-.PHONY:clean test launch
-clean:
-	rm -rf build
