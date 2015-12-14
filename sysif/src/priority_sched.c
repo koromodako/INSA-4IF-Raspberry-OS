@@ -58,7 +58,11 @@ void priority_sched_clean(void)
 void next_priority()
 {
 	// On calcule la prochaine priorité
-	PROCESS_PRIORITY nextPriority = (current_cell->pcb->priority+1 % PRIORITY_COUNT);
+	PROCESS_PRIORITY nextPriority = current_cell->pcb->priority+1;
+	if(nextPriority >= PRIORITY_COUNT)
+	{
+	    nextPriority = 0;
+	}
 	
 	// Modification dynamique de la priorité de kmain pour que la sentinelle est toujours la même priorité que la file qu'elle représente
 	// Rappel : 
