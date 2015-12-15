@@ -199,7 +199,7 @@ uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size)
                 lvl_2_ind < SECON_LVL_TT_COUN; 
                 ++lvl_2_ind, ++table_2_it)
             {
-                if( ! ((*table_1_it) & 0x03) )
+                if( ! ((*table_2_it) & 0x03) )
                 {
                     found_flag = 1;
                     break;
@@ -208,7 +208,7 @@ uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size)
         }
     }
     // Si le ram overflow flag est levé
-    if(ram_overflow_flag)
+    if (ram_overflow_flag)
     {   
         return 0x0;
     }
@@ -219,14 +219,28 @@ uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size)
     uint32_t table_2_page_flags = TABLE_2_PAGE_FLAGS;
 
     // Première entrée
-    uint32_t * first_entry = (uint32_t*)(
-            *(process->page_table + lvl_1_ind) & 0xFFFFFC00) + 
-            lvl_2_ind;
+    uint32_t * first_entry_adr_init = process->page_table + lvl_1_ind;
+
+    // Si la première entrée n'est pas initialisée (deux derniers bits à 0), on le fait en appelant init_page_section
+    if (!((*first_entry_adr_init) & 0x03)) {
+        init_page_section(first_entry_adr_init,
+                      1,
+                      TABLE_1_PAGE_FLAGS, 
+                      TABLE_2_PAGE_FLAGS,
+                      (uint32_t) (kernel_heap_limit+1));
+    }
+
+   /* uint32_t * first_entry = (uint32_t*)(
+            *(first_entry_adr_init) & 0xFFFFFC00) + 
+            lvl_2_ind;*/
 
     // Pour chaque frame à allouer
     int fta; // frame to allocate index
     int ind_2, ind_1;
-    for(fta=0; fta < nb_frame_to_alloc; ++fta)
+
+    uint32_t firstPhysicalAddress = 0;
+
+    for (fta=0; fta < nb_frame_to_alloc; ++fta)
     {
         ind_2 = (lvl_2_ind + fta) % SECON_LVL_TT_COUN;
         ind_1 = lvl_1_ind + ((lvl_2_ind+fta)/SECON_LVL_TT_COUN);
@@ -238,6 +252,11 @@ uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size)
         }
         // Adresse physique de la frame libre
         uint32_t f_phy_addr = ff_ind * FRAME_SIZE;
+
+        if (firstPhysicalAddress == 0) {
+            firstPhysicalAddress = f_phy_addr;
+        }
+
         // On va chercher l'entrée de niveau 2
         uint32_t * new_entry = (uint32_t*)(
             *(process->page_table + ind_1) & 0xFFFFFC00);
@@ -245,8 +264,22 @@ uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size)
         *(new_entry+ind_2) = f_phy_addr | table_2_page_flags;
         // On spécifie que la frame est allouée
         LOCK_FRAME(free_frames_table[ff_ind]);
-    }    
-    return (uint8_t*)first_entry;
+    }
+
+    // Adresse virtuelle
+    uint32_t modifiedVirtualAddress = 0x0;
+
+    // First-level table index dans l'adresse virtuelle
+    modifiedVirtualAddress |= (lvl_1_ind << 20);
+
+    // Second-level table index
+    modifiedVirtualAddress |= (lvl_2_ind << 12);
+
+    // Page index
+    uint32_t pageIndex = firstPhysicalAddress & 0xC;
+    modifiedVirtualAddress |= pageIndex;
+
+    return (uint8_t*)modifiedVirtualAddress;
 }
 
 int find_next_free_frame(void) 
@@ -273,7 +306,7 @@ void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size)
     // Libération des frames ----------------------------------
     int fta; // frame to allocate index
     int ind_2, ind_1;
-    for(fta=0; fta < nb_frame_to_dealloc; ++fta)
+    for (fta=0; fta < nb_frame_to_dealloc; ++fta)
     {
         ind_2 = (second_level_index + fta) % SECON_LVL_TT_COUN;
         ind_1 = first_level_index + ((second_level_index+fta)/SECON_LVL_TT_COUN);
@@ -312,12 +345,12 @@ void do_sys_mmap(pcb_s * context)
     uint32_t mostSignificantBits = context->registres[2];
     uint32_t size = (uint32_t) mostSignificantBits << 16 | leastSignificantBits;
 
-    uint32_t addr = (uint32_t)vmem_alloc_in_userland(current_process, size);
+    uint32_t * virtualAddress = (uint32_t*) vmem_alloc_in_userland(current_process, size);
+    uint32_t physicalAddress = vmem_translate_ps((uint32_t) virtualAddress, current_process);
 
-    context->registres[0] = (uint32_t)(addr >> 16);
+    context->registres[0] = (uint32_t)(physicalAddress >> 16);
     // Puis dans le futur R1 les bits de poids faible
-    context->registres[1] = (uint32_t)(addr);
-
+    context->registres[1] = (uint32_t)(physicalAddress);
 }
 
 void sys_munmap(void * addr, unsigned int size)
