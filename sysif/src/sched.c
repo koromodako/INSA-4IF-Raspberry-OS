@@ -6,6 +6,7 @@
 #include "asm_tools.h"
 #include "simple_sched.h"
 #include "priority_sched.h"
+#include "vmem.h"
 
 // Globales -----------------------------------------------------
 // Varaiable de mémorisation de la politique d'ordonnancement choisie
@@ -67,7 +68,7 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
     pcb->state = PS_READY;
 
     // Initialisation de la table de page du processus
-    //pcb->page_table = (uint32_t*)init_ps_translation_table();
+    pcb->page_table = (uint32_t*)init_ps_translation_table();
 
     return pcb;
 }
@@ -148,6 +149,8 @@ void do_sys_yield(pcb_s * context)
     {
         context->registres[i] = current_process->registres[i];
     }
+
+    configure_mmu_C((unsigned int) current_process->page_table);
 }
 
 // Appel système : exit --------------------------------------------------------
