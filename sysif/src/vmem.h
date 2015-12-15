@@ -97,7 +97,7 @@ void sys_munmap(void * addr, unsigned int size);
 /**
  *	Appel noyau pour liberer size octet à partir de addr
  */
-void do_sys_munmap();
+void do_sys_munmap(pcb_s * context);
 
 
 #endif //VMEM_H
