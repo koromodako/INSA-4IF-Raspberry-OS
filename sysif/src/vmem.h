@@ -27,7 +27,7 @@
 
 // Flags des pages
 #define TABLE_1_PAGE_FLAGS	0b000000000001
-#define TABLE_2_PAGE_FLAGS	0b010001110011
+#define TABLE_2_PAGE_FLAGS	0b010001110010
 #define DEVICE_FLAGS		0b010000110111
 
 // Fonctions ------------------------------------------
