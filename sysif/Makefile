@@ -4,7 +4,7 @@
 
 default: all
 
-test: 
+test:
 	@echo   "+----------------------------------------------------------------------------------"
 	@echo   "| N°: Test Description / Result"
 	@echo   "+----------------------------------------------------------------------------------"
@@ -64,6 +64,10 @@ endif
 
 build:
 	mkdir -p build
+
+# compilation des sons
+build/%.o: src/sounds/%.wav | build
+	arm-none-eabi-gcc-ld -s -r -o $@ -b binary $^
 
 # compilation C vers ELF
 build/%.o: src/%.c $(wildcard src/*.h) | build
