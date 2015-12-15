@@ -343,7 +343,7 @@ void do_sys_mmap(pcb_s * context)
 {
     uint32_t leastSignificantBits = context->registres[1];
     uint32_t mostSignificantBits = context->registres[2];
-    uint32_t size = (uint32_t) mostSignificantBits << 16 | leastSignificantBits;
+    uint32_t size = (uint32_t)(mostSignificantBits << 16 | leastSignificantBits);
 
     uint32_t * virtualAddress = (uint32_t*) vmem_alloc_in_userland(current_process, size);
     uint32_t physicalAddress = vmem_translate_ps((uint32_t) virtualAddress, current_process);
@@ -355,12 +355,30 @@ void do_sys_mmap(pcb_s * context)
 
 void sys_munmap(void * addr, unsigned int size)
 {
-    // 6
+    // Déplacement des registres contenant addr et size
+    __asm("mov r4, r3\n\t"
+          "mov r3, r2\n\t"
+          "mov r2, r1\n\t"
+          "mov r1, r0");
+    // SWI
+    SWI(SCI_MUNMAP);
+
+    return;
 }
 
-void do_sys_munmap()
+void do_sys_munmap(pcb_s * context)
 {
-    // 5
+    // Reconstruction de size
+    uint32_t leastSignificantBits = context->registres[3];
+    uint32_t mostSignificantBits = context->registres[4];
+    uint32_t size = (uint32_t)(mostSignificantBits << 16 | leastSignificantBits);    
+    // Reconstruction de addr
+    leastSignificantBits = context->registres[1];
+    mostSignificantBits = context->registres[2];
+    void * addr = (void*)(mostSignificantBits << 16 | leastSignificantBits);
+
+    // Appel à vmem free
+    vmem_free(addr, context, size);
 }
 
 // Fonctions données par le sujet --------------------------------

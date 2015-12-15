@@ -135,7 +135,7 @@ void __attribute__((naked)) swi_handler()
         case SCI_YIELD: do_sys_yield(context); break;
         case SCI_EXIT: do_sys_exit(context); break;
         case SCI_MMAP: do_sys_mmap(context); break;
-        case SCI_MUNMAP: do_sys_munmap(); break;
+        case SCI_MUNMAP: do_sys_munmap(context); break;
         default: PANIC(); break;
     }
 
