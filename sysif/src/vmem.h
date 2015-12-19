@@ -35,6 +35,10 @@
 #define ACCESS_FAULT		0b0110
 #define PRIVILEDGES_FAULT	0b1111
 
+// Globales -------------------------------------------
+
+unsigned int kernel_page_table_base;
+
 // Fonctions ------------------------------------------
 
 // Memory initialization -----------

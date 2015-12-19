@@ -157,9 +157,9 @@ void vmem_init(void)
     // Initialisation de la table d'occupation des frames
     init_occupation_table();
     // Initialisation de la mémoire physique
-    unsigned int translation_base = init_kern_translation_table();
+    kernel_page_table_base = init_kern_translation_table();
     // Configuration de la MMU
-    configure_mmu_C(translation_base);
+    configure_mmu_C(kernel_page_table_base);
     // Activation des interruptions et data aborts
     ENABLE_AB();
     // Démarrage de la MMU
