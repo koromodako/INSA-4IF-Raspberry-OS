@@ -91,7 +91,6 @@ void elect(void)
             current_process = priority_sched_elect();
             break;
     }
-
     // Switch to ruuning state
     current_process->state = PS_RUNNING;
 }
@@ -150,6 +149,9 @@ void do_sys_yield(pcb_s * context)
         context->registres[i] = current_process->registres[i];
     }
 
+    // Invalidate TLB
+    __asm("mcr p15, 0, r0, c8, c6, 0");
+    // Configure MMU with new page table
     configure_mmu_C((unsigned int) current_process->page_table);
 }
 

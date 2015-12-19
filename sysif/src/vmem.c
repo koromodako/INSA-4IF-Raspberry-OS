@@ -1,6 +1,7 @@
 #include "vmem.h"
 #include "kheap.h"
 #include "asm_tools.h"
+#include "hw.h"
 
 // Variables globales 
 //  Pointeur sur la premiere case de la 
@@ -504,3 +505,20 @@ void configure_mmu_C(unsigned int translation_base)
     __asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
 }
 
+void __attribute__((naked)) data_handler(void)
+{
+    int error;
+    // On récupère le code de l'erreur
+    __asm("mcr p15, 0, %0, c5, c0, 0" : "=r"(error));
+    // On masque sur les 4 bits de poids faible
+    error = error & 0x8; 
+    // On identifie l'erreur
+    switch(error)
+    {
+        case TRANSLATION_FAULT: break;
+        case ACCESS_FAULT:      break;        
+        case PRIVILEDGES_FAULT: break;
+    }
+    // On termine l'execution du noyau
+    terminate_kernel();
+}
