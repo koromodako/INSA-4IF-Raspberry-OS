@@ -41,14 +41,14 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
         terminate_kernel();
     }
 
-    // Initialisation de la table de page du processus
-    unsigned int page_table_base = init_ps_translation_table();
-    // Configuration de la MMU pour utiliser cette table
-    configure_mmu_C(page_table_base);
-
-    pcb_s * pcb = (pcb_s *) sys_mmap(sizeof(pcb_s));
     
-    pcb->page_table = (uint32_t *)page_table_base;
+    // On ne peut pas mettre de sys_mmap ici car cela utiliserait le proc courant (kmain)
+    // Donc la table du processus courant
+    // Creer le PCB et la pile dans l'espace propre du processus <=> difficile 
+    pcb_s * pcb = (pcb_s *) kAlloc(sizeof(pcb_s)); 
+    
+    // Initialisation de la table de page du processus
+    pcb->page_table = (uint32_t*)init_ps_translation_table();
 
     pcb->lr_user = (func_t *) &start_current_process;
     pcb->lr_svc = (func_t *) &start_current_process;
@@ -58,7 +58,9 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
     pcb->priority = priority;
 
     // Pile de 2500 uint32_t
-    pcb->sp_start = (uint32_t *) sys_mmap(SIZE_STACK_PROCESS);
+    // On ne peut pas mettre de sys_mmap ici car cela utiliserait le proc courant (kmain)
+    // Donc la table du processus courant 
+    pcb->sp_start = (uint32_t *) kAlloc(SIZE_STACK_PROCESS);
     pcb->sp = pcb->sp_start + SIZE_STACK_PROCESS + 1;
 
     // Initialisation du champ SPSR
@@ -74,9 +76,6 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
             break;
     }
     pcb->state = PS_READY;
-
-    // Reconfiguration de la MMU pour repasser sur la table des pages du kernel
-    configure_mmu_C(kernel_page_table_base);
 
     return pcb;
 }

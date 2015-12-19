@@ -62,7 +62,7 @@ void init_occupation_table(void)
     }
 }
 
-unsigned int init_kern_translation_table(void) 
+uint32_t init_kern_translation_table(void) 
 {
     // Initialisation des variables de flags
     uint32_t device_flags = DEVICE_FLAGS;
@@ -104,10 +104,10 @@ unsigned int init_kern_translation_table(void)
                       DEVICE_START);
 
     // On retourne l'adresse de la page de niveau 1
-    return (unsigned int) (translation_base);
+    return (uint32_t)translation_base;
 }
 
-unsigned int init_ps_translation_table(void)
+uint32_t init_ps_translation_table(void)
 {
     // Initialisation des variables de flags
     uint32_t device_flags = DEVICE_FLAGS;
@@ -149,7 +149,7 @@ unsigned int init_ps_translation_table(void)
                       DEVICE_START);
 
     // On retourne l'adresse de la page de niveau 1
-    return (unsigned int) (translation_base);
+    return (uint32_t)translation_base;
 }
 
 void vmem_init(void) 
@@ -166,7 +166,7 @@ void vmem_init(void)
     start_mmu_C();
 }
 
-uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size)
+uint8_t * vmem_alloc_in_userland(pcb_s * process, uint32_t size)
 {
     uint32_t * device_limit = process->page_table + (DEVICE_START / (FRAME_SIZE*SECON_LVL_TT_COUN));
 
@@ -294,7 +294,7 @@ int find_next_free_frame(void)
     return -1;
 }
 
-void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size)
+void vmem_free(uint8_t* vAddress, pcb_s * process, uint32_t size)
 {
     // Valeur des indexes
     uint32_t va = (uint32_t) vAddress;
@@ -324,42 +324,32 @@ void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size)
     } 
 }
 
-void* sys_mmap(unsigned int size)
+void* sys_mmap(uint32_t size)
 {
-    // Déplacement des registres contenant size
-    __asm("mov r2, r1\n\t"
-          "mov r1, r0");
+    // Déplacement du registre contenant size
+    __asm("mov r1, r0");
     // SWI
     SWI(SCI_MMAP);
 
-    uint32_t leastSignificantBits;
-    uint32_t mostSignificantBits;
-    __asm("mov %0, r0" : "=r"(mostSignificantBits) : : "r0", "r1");
-    __asm("mov %0, r1" : "=r"(leastSignificantBits) : : "r0", "r1");
+    uint32_t vAddr;
+    __asm("mov %0, r0" : "=r"(vAddr));
 
-    return (void*)(mostSignificantBits << 16 | leastSignificantBits);
+    return (void*)(vAddr);
 }
 
 void do_sys_mmap(pcb_s * context)
 {
-    uint32_t leastSignificantBits = context->registres[1];
-    uint32_t mostSignificantBits = context->registres[2];
-    uint32_t size = (uint32_t)(mostSignificantBits << 16 | leastSignificantBits);
+    // Allocation grâceầ la methode privee d'allocation memoire
+    uint32_t * virtualAddress = (uint32_t*) vmem_alloc_in_userland(current_process, context->registres[1]);
 
-    uint32_t * virtualAddress = (uint32_t*) vmem_alloc_in_userland(current_process, size);
-    uint32_t physicalAddress = vmem_translate_ps((uint32_t) virtualAddress, current_process);
-
-    context->registres[0] = (uint32_t)(physicalAddress >> 16);
-    // Puis dans le futur R1 les bits de poids faible
-    context->registres[1] = (uint32_t)(physicalAddress);
+    // Retour dans r0 de l'adresse virtuelle du debut du bloc alloué
+    context->registres[0] = (uint32_t)(virtualAddress);
 }
 
-void sys_munmap(void * addr, unsigned int size)
+void sys_munmap(void * addr, uint32_t size)
 {
     // Déplacement des registres contenant addr et size
-    __asm("mov r4, r3\n\t"
-          "mov r3, r2\n\t"
-          "mov r2, r1\n\t"
+    __asm("mov r2, r1\n\t"
           "mov r1, r0");
     // SWI
     SWI(SCI_MUNMAP);
@@ -369,15 +359,10 @@ void sys_munmap(void * addr, unsigned int size)
 
 void do_sys_munmap(pcb_s * context)
 {
-    // Reconstruction de size
-    uint32_t leastSignificantBits = context->registres[3];
-    uint32_t mostSignificantBits = context->registres[4];
-    uint32_t size = (uint32_t)(mostSignificantBits << 16 | leastSignificantBits);    
     // Reconstruction de addr
-    leastSignificantBits = context->registres[1];
-    mostSignificantBits = context->registres[2];
-    void * addr = (void*)(mostSignificantBits << 16 | leastSignificantBits);
-
+    uint8_t * addr = (uint8_t*)(context->registres[1]);
+    // Reconstruction de size
+    uint32_t size = context->registres[2];
     // Appel à vmem free
     vmem_free(addr, context, size);
 }
@@ -475,7 +460,7 @@ uint32_t vmem_translate_ps(uint32_t va, pcb_s* process)
 
 void start_mmu_C(void) 
 {
-    register unsigned int control;
+    uint32_t control;
     __asm("mcr p15, 0, %[zero], c1, c0, 0" : : [zero] "r"(0));
     //Disable cache
     __asm("mcr p15, 0, r0, c7, c7, 0");
@@ -490,9 +475,9 @@ void start_mmu_C(void)
     __asm volatile("mcr p15, 0, %[control], c1, c0, 0" : : [control] "r" (control));
 }
 
-void configure_mmu_C(unsigned int translation_base) 
+void configure_mmu_C(uint32_t translation_base) 
 {
-    register unsigned int pt_addr = translation_base;
+    uint32_t pt_addr = translation_base;
     /* Translation table 0 */
     __asm volatile("mcr p15, 0, %[addr], c2, c0, 0" : : [addr] "r" (pt_addr));
     /* Translation table 1 */

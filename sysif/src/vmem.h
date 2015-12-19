@@ -45,11 +45,11 @@ unsigned int kernel_page_table_base;
 /**
  *	Initialise la mémoire physique
  */
-unsigned int init_kern_translation_table(void);
+uint32_t init_kern_translation_table(void);
 /**
  *	Initialise la mémoire physique
  */
-unsigned int init_ps_translation_table(void);
+uint32_t init_ps_translation_table(void);
 /**
  *	Initialise la table d'occupation des pages
  */
@@ -61,7 +61,7 @@ void start_mmu_C(void);
 /**
  *	Configure la MMU
  */
-void configure_mmu_C(unsigned int translation_base);
+void configure_mmu_C(uint32_t translation_base);
 /**
  *	Initialise la mémoire virtuelle
  */
@@ -83,11 +83,11 @@ uint32_t vmem_translate_ps(uint32_t va, pcb_s* process);
 /**
  *
  */
-uint8_t * vmem_alloc_in_userland(pcb_s * process, unsigned int size);
+uint8_t * vmem_alloc_in_userland(pcb_s * process, uint32_t size);
 /**
  *
  */
-void vmem_free(uint8_t* vAddress, pcb_s * process, unsigned int size);
+void vmem_free(uint8_t* vAddress, pcb_s * process, uint32_t size);
 /**
  *	Cette fonction retourne l'index de la prochaine frame libre
  */
@@ -97,7 +97,7 @@ int find_next_free_frame(void) ;
 /**
  *	Appel système pour allouer size octets dans l'espace d'adressage du processus
  */
-void* sys_mmap(unsigned int size);
+void* sys_mmap(uint32_t size);
 /**
  *	Appel noyau pour allouer size octets dans l'espace d'adressage du processus
  */
@@ -106,7 +106,7 @@ void do_sys_mmap(pcb_s * context);
 /**
  *	Appel système pour liberer size octet à partir de addr
  */
-void sys_munmap(void * addr, unsigned int size);
+void sys_munmap(void * addr, uint32_t size);
 /**
  *	Appel noyau pour liberer size octet à partir de addr
  */
