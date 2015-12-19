@@ -18,6 +18,7 @@ b *sys_munmap
 b *swi_handler
 b *irq_handler
 b *data_handler
+b *create_process
 
 
 source utils.gdb
