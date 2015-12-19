@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "sched.h"
 
-// Macros ----------------------------------------------------------------------
+// Macros & Constants ----------------------------------------------------------------------
 #define FRAME_SIZE 4096  // En Octet = 4Ko
 
 #define FIRST_LVL_TT_INDEX_SIZE 14 // Talle de l'index pour une page de niveau 1
@@ -29,6 +29,11 @@
 #define TABLE_1_PAGE_FLAGS	0b000000000001
 #define TABLE_2_PAGE_FLAGS	0b010001110010
 #define DEVICE_FLAGS		0b010000110111
+
+// Codes erreurs TLB
+#define TRANSLATION_FAULT 	0b0111
+#define ACCESS_FAULT		0b0110
+#define PRIVILEDGES_FAULT	0b1111
 
 // Fonctions ------------------------------------------
 
@@ -57,6 +62,10 @@ void configure_mmu_C(unsigned int translation_base);
  *	Initialise la mémoire virtuelle
  */
 void vmem_init(void);
+
+// Data handler
+
+void data_handler(void);
 
 // Memory debug --------------------
 /**

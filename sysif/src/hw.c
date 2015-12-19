@@ -123,4 +123,5 @@ hw_init() {
 void
 terminate_kernel() {
     log_str("Exit kernel\n");
+    PANIC();
 }
