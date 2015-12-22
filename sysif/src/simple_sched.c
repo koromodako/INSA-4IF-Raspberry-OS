@@ -1,6 +1,7 @@
 #include "simple_sched.h"
 #include "hw.h"
 #include "kheap.h"
+#include "vmem.h"
 
 // Types ------------------------------------
 struct SimpleCell {
@@ -14,8 +15,6 @@ typedef struct SimpleCell SimpleCell;
 SimpleCell ps_list;
 // Pointeur sur la cellule du processus courant
 SimpleCell * current_cell;
-// Structure du process point d'entrée de l'OS
-pcb_s kmain_process;
 
 // Procédure privées -------------------------------------------
 void simple_sched_clean(void)
@@ -28,10 +27,8 @@ void simple_sched_clean(void)
 		SimpleCell * cell = current_cell->next;
 		// Modification du lien
 		current_cell->next = current_cell->next->next;
-		// Libération de la mémoire allouée au processus
-		FREE_PCB(cell->pcb);
-		// Libération de la cellule
-		kFree((void*)cell, sizeof(SimpleCell));	
+		// Libération de la mémoire allouée pour le processus (pile, pcb, cellule de liste)
+		FREE_PS(cell);	
 	}
 	// Test de terminaison du kernel
 	if(current_cell->next == current_cell)
@@ -40,12 +37,12 @@ void simple_sched_clean(void)
 	}
 }
 //--------------------------------------------------------------
-pcb_s * simple_sched_init(void)
+pcb_s * simple_sched_init(pcb_s * kmain_pcb)
 {
 	// Chaînage de la sentinelle sur elle même
 	ps_list.next = &ps_list;
 	// Affectation du process point d'entrée
-	ps_list.pcb = &kmain_process;
+	ps_list.pcb = kmain_pcb;
 	// Définition de la cellule courante
 	current_cell = &ps_list;
 	// Retourne le processus point d'entrée

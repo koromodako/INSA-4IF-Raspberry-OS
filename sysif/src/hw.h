@@ -3,21 +3,25 @@
 
 #include "config.h"
 
-#if SERIAL_PRINT
-#include "uart.h"
+#ifdef USE_LOGGER
+#	include "uart.h"
 #endif
 
 #include <stdint.h>
 
 /****************** Printing  ***********/
-#if SERIAL_PRINT
-#define log_str(msg) uart_send_str(">>>> "); uart_send_str(msg);
-#define log_int(msg) uart_send_int(msg);
-#define log_cr() uart_send_str("\n");
+#ifdef USE_LOGGER
+#	define log_nfo(msg) uart_send_str(__FILE__); uart_send_str(" : [NFO]> "); uart_send_str(msg);
+#	define log_dbg(msg) uart_send_str(__FILE__); uart_send_str(" : [DBG]> "); uart_send_str(msg);
+#	define log_err(msg) uart_send_str(__FILE__); uart_send_str(" : [ERR]> "); uart_send_str(msg);
+#	define log_int(msg) uart_send_int(msg);
+#	define log_cr() uart_send_str("\n\r");
 #else
-#define log_str(msg)
-#define log_int(msg)
-#define log_cr()
+#	define log_nfo(msg)
+#	define log_dbg(msg)
+#	define log_err(msg)
+#	define log_int(msg)
+#	define log_cr()
 #endif
 
 /*************  Memory mapping ***********/

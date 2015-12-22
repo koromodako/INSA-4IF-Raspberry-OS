@@ -8,9 +8,11 @@
 #define NB_SAVED_REGISTERS 13
 #define SIZE_STACK_PROCESS 10000 // En Octet = 10Ko
 
-#define FREE_PCB(pcb) \
-    kFree((void*)pcb->sp_start, SIZE_STACK_PROCESS); \
-    kFree((void*)pcb, sizeof(pcb_s))
+#define FREE_PS(cell) \
+    vmem_free((uint8_t*)(cell->pcb->sp_start), (cell->pcb), SIZE_STACK_PROCESS); \
+    kFree((void*)(cell->pcb), sizeof(pcb_s)); \
+    kFree((void*)(cell), sizeof(SimpleCell))
+
 
 // Types et structures ---------------------------------------------------------
 typedef int (func_t) (void);
