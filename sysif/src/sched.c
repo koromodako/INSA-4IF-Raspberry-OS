@@ -9,15 +9,37 @@
 #include "vmem.h"
 
 // Globales -----------------------------------------------------
-// Varaiable de mémorisation de la politique d'ordonnancement choisie
+/* 
+    Varaiable de mémorisation de la politique d'ordonnancement choisie
+*/
 SCHEDULING_POLICY sched_policy = 0x00;
+/*
+    PCB du process kmain
+*/
+pcb_s kmain_pcb;
+/*
+    Protection d'initialisation
+*/
+int sched_init_locker = 0;
+
+// Fonctions -----------------------------------------------------
 
 void sched_init(SCHEDULING_POLICY schedPolicy)
 {
+    if(sched_init_locker)
+    {   log_err("Sheduler initialization called twice !");
+        log_cr();
+    }
+
     // Initialisation de la mémoire
     kheap_init();
+    log_nfo("Kernel heap initialized.");
+    log_cr();
 #ifdef USE_VMEM
-    vmem_init();
+    // Initialisation du pcb de kmain avec la table des pages
+    kmain_pcb.page_table = (uint32_t*)vmem_init();
+    log_nfo("Virtual memory initialized.");
+    log_cr();
 #endif
 
     // Initialisation de la politique d'ordonnancement
@@ -26,12 +48,18 @@ void sched_init(SCHEDULING_POLICY schedPolicy)
     // Initialisation du scheduler associé
     switch(sched_policy) {
         case SP_SIMPLE: 
-            current_process = simple_sched_init();
+            log_nfo("Scheduling policy : simple.");
+            log_cr();
+            current_process = simple_sched_init(&kmain_pcb);
             break;
         case SP_PRIORITY:
-            current_process = priority_sched_init();
+            log_nfo("Scheduling policy : priority.");
+            log_cr();
+            current_process = priority_sched_init(&kmain_pcb);
             break;
     }
+    // Activation de la protection d'initialisation
+    sched_init_locker = 1;
 }
 
 pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
@@ -41,12 +69,15 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
         terminate_kernel();
     }
 
-    
-    // On ne peut pas mettre de sys_mmap ici car cela utiliserait le proc courant (kmain)
-    // Donc la table du processus courant
-    // Creer le PCB et la pile dans l'espace propre du processus <=> difficile 
+    /*
+     *  La ligne suivante alloue la mémoire nécessaire au stockage du pcb du
+     *  processus en cours de création. Il est difficile d'envisager l'allocation 
+     *  de cette zone de mémoire seulement dans la table de page du processus.
+     *  Nous choisissons donc de conserver cette section de mémoire dans l'espace kernel. 
+     */
     pcb_s * pcb = (pcb_s *) kAlloc(sizeof(pcb_s)); 
-    
+
+
     // Initialisation de la table de page du processus
     pcb->page_table = (uint32_t*)init_ps_translation_table();
 
@@ -58,13 +89,22 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
     pcb->priority = priority;
 
     // Pile de 2500 uint32_t
-    // On ne peut pas mettre de sys_mmap ici car cela utiliserait le proc courant (kmain)
-    // Donc la table du processus courant 
-    pcb->sp_start = (uint32_t *) kAlloc(SIZE_STACK_PROCESS);
+    // On alloue maintenant la stack dans la table de page du processus pour l'isoler
+    //  en utilisant vmem_alloc_in_userland et pas sys_mmap car sys_mmap utilise la 
+    //  table des pages du processus courant (ici kmain). 
+    
+    //pcb->sp_start = (uint32_t *) vmem_alloc_in_userland(pcb, SIZE_STACK_PROCESS);
+    pcb->sp_start = (uint32_t*) kAlloc(SIZE_STACK_PROCESS);
+    
+    // On replace le pointeur de pile au départ de cette dernière
     pcb->sp = pcb->sp_start + SIZE_STACK_PROCESS + 1;
 
     // Initialisation du champ SPSR
     pcb->cpsr = 0b10000; // Valeur du SPSR en mode USER
+
+    log_nfo("New process created, entry=.");
+    log_int((int)entry);
+    log_cr();
 
     // Ajout de la pcb aux structures de scheduling
     switch(sched_policy) {
@@ -76,6 +116,8 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
             break;
     }
     pcb->state = PS_READY;
+    log_nfo("Process scheduled for execution.");
+    log_cr();
 
     return pcb;
 }

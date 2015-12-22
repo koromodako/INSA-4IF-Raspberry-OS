@@ -91,7 +91,7 @@ void uart_send_str(const char *data)
 	// On attend que l'UART soit disponible
 	while ((Get32(UART_FR) & (1u << 5u)) != 0u);
 	// Puis on envoie le caractère nul
-#if RPI
+#ifdef RPI
 	Set32(UART_DR, 0u);
 #endif
 }

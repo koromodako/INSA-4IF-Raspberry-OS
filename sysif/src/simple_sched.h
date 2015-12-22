@@ -6,7 +6,7 @@
 /**
  *	Cette procédure initialise le scheduler simple
  */
-pcb_s * simple_sched_init(void);
+pcb_s * simple_sched_init(pcb_s * kmain_pcb);
 /**
  *	Cette procédure élit un nouveau processus et supprime les processus terminés
  */

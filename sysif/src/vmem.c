@@ -3,10 +3,21 @@
 #include "asm_tools.h"
 #include "hw.h"
 
-// Variables globales 
-//  Pointeur sur la premiere case de la 
-//  table d'occupation des frames
+// Globales -------------------------------------------
+/*  
+    Adresse de la table des pages du kernel
+*/
+uint32_t kernel_page_table_base;
+/*  
+    Pointeur sur la premiere case de la table d'occupation des frames
+*/
 uint8_t * free_frames_table;
+/*  
+    Protection d'initialisation
+*/
+int vmem_init_locker = 0;
+
+// Fonctions -------------------------------------------
 
 void init_page_section(uint32_t * table_iterator, 
                        int page_count, 
@@ -78,7 +89,7 @@ uint32_t init_kern_translation_table(void)
     // Pour les pages du kernel -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
     // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
-    int kern_page_count = ((uint32_t)(kernel_heap_limit)+1) / (FRAME_SIZE*SECON_LVL_TT_COUN);
+    int kern_page_count = divide32( (uint32_t)(kernel_heap_limit) + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     init_page_section(first_table_it,
@@ -88,12 +99,12 @@ uint32_t init_kern_translation_table(void)
                       0x0);
 
     // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
-    first_table_it = translation_base + (DEVICE_START / (FRAME_SIZE*SECON_LVL_TT_COUN));
+    first_table_it = translation_base + divide32(DEVICE_START,(FRAME_SIZE*SECON_LVL_TT_COUN));
 
     // Pour les pages des devices -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
     // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
-    int device_page_count = ((DEVICE_END - DEVICE_START) + 1) /(FRAME_SIZE*SECON_LVL_TT_COUN);
+    int device_page_count = divide32(DEVICE_END - DEVICE_START + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     // Itération sur la table 1 pour allocation table 2
@@ -123,7 +134,7 @@ uint32_t init_ps_translation_table(void)
     // Pour les pages du kernel -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
     // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
-    int kern_page_count = ((uint32_t)(kernel_heap_limit)+1) / (FRAME_SIZE*SECON_LVL_TT_COUN);
+    int kern_page_count = divide32( (uint32_t)(kernel_heap_limit) + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     init_page_section(first_table_it,
@@ -133,12 +144,12 @@ uint32_t init_ps_translation_table(void)
                       0x0);
 
     // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
-    first_table_it = translation_base + (DEVICE_START / (FRAME_SIZE*SECON_LVL_TT_COUN));
+    first_table_it = translation_base + divide32(DEVICE_START,(FRAME_SIZE*SECON_LVL_TT_COUN));
 
     // Pour les pages des devices -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
     // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
-    int device_page_count = ((DEVICE_END - DEVICE_START) + 1) /(FRAME_SIZE*SECON_LVL_TT_COUN);
+    int device_page_count = divide32(DEVICE_END - DEVICE_START + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     // Itération sur la table 1 pour allocation table 2
@@ -152,8 +163,13 @@ uint32_t init_ps_translation_table(void)
     return (uint32_t)translation_base;
 }
 
-void vmem_init(void) 
+uint32_t vmem_init(void) 
 {
+    if(vmem_init_locker)
+    {   log_err("Virtual memory initialization called twice !");
+        log_cr();
+        return NULL;
+    }
     // Initialisation de la table d'occupation des frames
     init_occupation_table();
     // Initialisation de la mémoire physique
@@ -164,11 +180,15 @@ void vmem_init(void)
     ENABLE_AB();
     // Démarrage de la MMU
     start_mmu_C();
+    // Activation de la protection d'initialisation
+    vmem_init_locker = 1;
+    // On retourne pour la seule et unique fois l'adresse à l'appelant
+    return kernel_page_table_base;
 }
 
 uint8_t * vmem_alloc_in_userland(pcb_s * process, uint32_t size)
 {
-    uint32_t * device_limit = process->page_table + (DEVICE_START / (FRAME_SIZE*SECON_LVL_TT_COUN));
+    uint32_t * device_limit = process->page_table + divide32(DEVICE_START, FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // Trouver une page libre --------------------------------
     // Iterateur sur la premiere entree de niveau 1
@@ -216,7 +236,7 @@ uint8_t * vmem_alloc_in_userland(pcb_s * process, uint32_t size)
 
     // Allouer frames -----------------------------------------
     // On calcule le nombre de frames à allouer
-    int nb_frame_to_alloc = (size/FRAME_SIZE)+1;
+    int nb_frame_to_alloc = divide32(size, FRAME_SIZE) + 1;
     uint32_t table_2_page_flags = TABLE_2_PAGE_FLAGS;
 
     // Première entrée
@@ -244,7 +264,7 @@ uint8_t * vmem_alloc_in_userland(pcb_s * process, uint32_t size)
     for (fta=0; fta < nb_frame_to_alloc; ++fta)
     {
         ind_2 = (lvl_2_ind + fta) % SECON_LVL_TT_COUN;
-        ind_1 = lvl_1_ind + ((lvl_2_ind+fta)/SECON_LVL_TT_COUN);
+        ind_1 = lvl_1_ind + divide32( lvl_2_ind + fta, SECON_LVL_TT_COUN);
         // Index de la premiere frame libre
         int ff_ind = find_next_free_frame();
         if(ff_ind == -1)
@@ -302,7 +322,7 @@ void vmem_free(uint8_t* vAddress, pcb_s * process, uint32_t size)
     uint32_t second_level_index = ((va << 12) >> 24);
 
     // Nombre de frames à libérer
-    int nb_frame_to_dealloc = (size/FRAME_SIZE)+1;
+    int nb_frame_to_dealloc = divide32(size, FRAME_SIZE)+1;
 
     // Libération des frames ----------------------------------
     int fta; // frame to allocate index
@@ -310,7 +330,7 @@ void vmem_free(uint8_t* vAddress, pcb_s * process, uint32_t size)
     for (fta=0; fta < nb_frame_to_dealloc; ++fta)
     {
         ind_2 = (second_level_index + fta) % SECON_LVL_TT_COUN;
-        ind_1 = first_level_index + ((second_level_index+fta)/SECON_LVL_TT_COUN);
+        ind_1 = first_level_index + divide32( second_level_index + fta, SECON_LVL_TT_COUN);
         // On va chercher l'entrée de niveau 2
         uint32_t * del_entry = (uint32_t*)(
             *(process->page_table + ind_1) & 0xFFFFFC00);
@@ -500,9 +520,18 @@ void __attribute__((naked)) data_handler(void)
     // On identifie l'erreur
     switch(error)
     {
-        case TRANSLATION_FAULT: break;
-        case ACCESS_FAULT:      break;        
-        case PRIVILEDGES_FAULT: break;
+        case TRANSLATION_FAULT: 
+            log_err("Translation fault !"); 
+            log_cr();
+            break;
+        case ACCESS_FAULT:      
+            log_err("Access fault !"); 
+            log_cr();
+            break;        
+        case PRIVILEGES_FAULT:  
+            log_err("Privileges fault !"); 
+            log_cr();
+            break;
     }
     // On termine l'execution du noyau
     terminate_kernel();

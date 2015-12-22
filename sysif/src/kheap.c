@@ -1,7 +1,8 @@
 #include <stdint.h>
 #include "kheap.h"
+#include "hw.h"
 
-
+// Globales -------------------------------------------
 // Structure de file simple
 struct fl {
 	struct fl	*next;
@@ -11,6 +12,13 @@ struct fl {
 // Deux constantes définissant le haut du tas et la limite du tas
 uint8_t* kernel_heap_top;
 uint8_t* kernel_heap_limit;
+/*  
+    Protection d'initialisation
+*/
+int kheap_init_locker = 0;
+
+// Fonctions -------------------------------------------
+
 
 /**
  * 	Retourne une addr ...
@@ -19,8 +27,7 @@ uint8_t* kernel_heap_limit;
  *  @param pwr_of_2
  *		X dans 2^X
  */
-unsigned int
-aligned_value(unsigned int addr, unsigned int pwr_of_2)
+unsigned int aligned_value(unsigned int addr, unsigned int pwr_of_2)
 {    
 	// On décale 1 de power_of_2 bits vers la gauche
 	// ex : si addr = 0b01101 et pwr_of_2 = 4 
@@ -48,8 +55,7 @@ aligned_value(unsigned int addr, unsigned int pwr_of_2)
  *	@param pwr_of_2
  *		
  */
-uint8_t*
-kAlloc_aligned(unsigned int size, unsigned int pwr_of_2)
+uint8_t* kAlloc_aligned(unsigned int size, unsigned int pwr_of_2)
 {
 	register struct fl *cfl = freelist, **prev;
 	unsigned int aligned_cfl = aligned_value((unsigned int) cfl, pwr_of_2);
@@ -108,8 +114,7 @@ kAlloc_aligned(unsigned int size, unsigned int pwr_of_2)
  *	@param size
  *		Taille du bloc de mémoire allouée en octet
  */
-uint8_t*
-kAlloc(unsigned int size)
+uint8_t* kAlloc(unsigned int size)
 {
 	register struct fl *cfl = freelist, **prev;
 	unsigned int size_aligned = (size + 3) & ~3;
@@ -152,8 +157,7 @@ kAlloc(unsigned int size)
  *	@param size
  *		Taille du bloc à libérer en octets
  */
-void
-kFree(uint8_t* ptr, unsigned int size)
+void kFree(uint8_t* ptr, unsigned int size)
 {
 	register struct fl* cfl = (struct fl*) ptr;
 
@@ -165,9 +169,16 @@ kFree(uint8_t* ptr, unsigned int size)
 /**
  * 	Cette fonction initialise les adresses de référence du tas
  */
-void
-kheap_init()
+void kheap_init()
 {
+	if(kheap_init_locker)
+	{	log_err("Heap initialization called twice !");
+		log_cr();
+	}
+
     kernel_heap_top = (uint8_t*) &__kernel_heap_start__;
     kernel_heap_limit = (uint8_t*) &__kernel_heap_end__;
+
+    // Activation de la protection
+    kheap_init_locker = 1;
 }

@@ -33,11 +33,7 @@
 // Codes erreurs TLB
 #define TRANSLATION_FAULT 	0b0111
 #define ACCESS_FAULT		0b0110
-#define PRIVILEDGES_FAULT	0b1111
-
-// Globales -------------------------------------------
-
-unsigned int kernel_page_table_base;
+#define PRIVILEGES_FAULT	0b1111
 
 // Fonctions ------------------------------------------
 
@@ -65,7 +61,7 @@ void configure_mmu_C(uint32_t translation_base);
 /**
  *	Initialise la mémoire virtuelle
  */
-void vmem_init(void);
+uint32_t vmem_init(void);
 
 // Data handler
 
