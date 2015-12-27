@@ -19,7 +19,7 @@ UMOUNTDEV = /dev/mmcblk0p1 /dev/mmcblk0p2
 # options à passer à la fois au compilateur C et à l'assembleur
 COMMON_FLAGS=-mcpu=arm1176jzf-s
 # options à passer au compilateur
-CFLAGS_ALL=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
+CFLAGS_ALL=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -fshort-wchar
 # options à passer au compilateur C si QEMU
 CFLAGS_QEMU=$(CFLAGS_ALL) -DQEMU
 # options à passer au compilateur C
@@ -68,7 +68,7 @@ kernel_for_sdcard: CFLAGS=$(CFLAGS_STD)
 kernel_for_sdcard: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.img 
 
 put_img_in_sdcard : kernel_for_sdcard
-	cp $(BUILDDIR)/kernel.img $(SDCARDDIR)/kernel.img && umount $(UMOUNT)
+	cp $(BUILDDIR)/kernel.img $(SDCARDDIR)/kernel.img && umount $(UMOUNTDEV)
 
 launch: kernel_for_qemu
 	make -C $(TOOLSDIR)/
