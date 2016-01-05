@@ -5,6 +5,7 @@
 
 extern uint8_t* kernel_heap_top;
 extern uint8_t* kernel_heap_limit;
+extern uint8_t* kernel_heap_start;
 
 extern uint32_t __kernel_heap_start__;
 extern uint32_t __kernel_heap_end__;

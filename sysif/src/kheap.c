@@ -12,6 +12,7 @@ struct fl {
 // Deux constantes définissant le haut du tas et la limite du tas
 uint8_t* kernel_heap_top;
 uint8_t* kernel_heap_limit;
+uint8_t* kernel_heap_start;
 /*  
     Protection d'initialisation
 */
@@ -178,6 +179,7 @@ void kheap_init()
 
     kernel_heap_top = (uint8_t*) &__kernel_heap_start__;
     kernel_heap_limit = (uint8_t*) &__kernel_heap_end__;
+    kernel_heap_start = (uint8_t*) &__kernel_heap_start__;
 
     // Activation de la protection
     kheap_init_locker = 1;

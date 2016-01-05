@@ -15,11 +15,11 @@
 
 
 void user_process_1(void) {
-    uint8_t * adr = (uint8_t *) sys_mmap(8);
-    (*adr) = 0xF;
+    uint8_t * addr = (uint8_t *) sys_mmap(8);
+    (*addr) = 0xF;
 
     while (1) {
-        adr = adr + 1;
+        addr = addr + 1;
     }
 }
 

@@ -2,6 +2,7 @@
 #include "kheap.h"
 #include "asm_tools.h"
 #include "hw.h"
+#include "math.h"
 
 // Globales -------------------------------------------
 /*  
@@ -89,7 +90,9 @@ uint32_t init_kern_translation_table(void)
     // Pour les pages du kernel -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
     // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
-    int kern_page_count = divide32( (uint32_t)(kernel_heap_limit) + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
+    int kern_page_count = divide32ceil( 
+        (uint32_t)(kernel_heap_limit) + 1, 
+        FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     init_page_section(first_table_it,
@@ -99,12 +102,12 @@ uint32_t init_kern_translation_table(void)
                       0x0);
 
     // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
-    first_table_it = translation_base + divide32(DEVICE_START,(FRAME_SIZE*SECON_LVL_TT_COUN));
+    first_table_it = translation_base + divide32ceil(DEVICE_START,(FRAME_SIZE*SECON_LVL_TT_COUN));
 
     // Pour les pages des devices -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
     // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
-    int device_page_count = divide32(DEVICE_END - DEVICE_START + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
+    int device_page_count = divide32ceil(DEVICE_END - DEVICE_START + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     // Itération sur la table 1 pour allocation table 2
@@ -131,25 +134,40 @@ uint32_t init_ps_translation_table(void)
     uint32_t * first_table_it = translation_base;
 
 
-    // Pour les pages du kernel -------------------------------------------
-    // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_limit
-    // On ajoute 1 à kernel_heap_limit car on map depuis l'adresse 0
-    int kern_page_count = divide32( (uint32_t)(kernel_heap_limit) + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
+    // Pour le code commun -------------------------------------------
+    // Calcul du nombre de page 1 necessaires pour mapper de 0x000000000 à kernel_heap_start
+    // On ajoute 1 à kernel_heap_start car on map depuis l'adresse 0
+    
+    int common_page_count = divide32ceil( 
+        (uint32_t)(kernel_heap_start) + 1, 
+        FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
+
     init_page_section(first_table_it,
-                      kern_page_count,
+                      common_page_count,
                       table_1_page_flags, 
                       table_2_page_flags,
                       0x0);
 
     // Incrément de l'itérateur sur la table 1 pour aller pointer l'équivalent de l'adresse 0x20000000 mappée
-    first_table_it = translation_base + divide32(DEVICE_START,(FRAME_SIZE*SECON_LVL_TT_COUN));
+    first_table_it = translation_base + divide32(
+        DEVICE_START,
+        (FRAME_SIZE*SECON_LVL_TT_COUN));
+    // DEBUG ------------------------------- DEBUG
+    uint32_t * first_table_it_ceil = translation_base + divide32ceil(
+        DEVICE_START,
+        (FRAME_SIZE*SECON_LVL_TT_COUN));
+    first_table_it_ceil++;
+    first_table_it_ceil--;
+    // DEBUG ------------------------------- DEBUG
 
     // Pour les pages des devices -------------------------------------------
     // Calcul du nombre de page 1 necessaires pour mapper de 0x20000000 à 0x20FFFFFF
     // On ajoute 1 à la différence d'adresses car on map depuis l'adresse 0x20000000 incluse
-    int device_page_count = divide32(DEVICE_END - DEVICE_START + 1, FRAME_SIZE * SECON_LVL_TT_COUN);
+    int device_page_count = divide32ceil(
+        DEVICE_END - DEVICE_START + 1, 
+        FRAME_SIZE * SECON_LVL_TT_COUN);
 
     // On remplit l'espace memoire de la page 1 avec les entrées des pages 2
     // Itération sur la table 1 pour allocation table 2

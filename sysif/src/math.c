@@ -29,6 +29,21 @@ uint32_t divide32(uint32_t x, uint32_t y) {
     return quotient;
 }
 
+uint32_t divide32ceil(uint32_t x, uint32_t y) {
+    // if 0/y return 0
+    if(x == 0) { return 0; }
+    // create quotient and devide x as much as possible to increase it
+    int quotient = 0;
+    while (x >= y) {
+        x  -=  y;
+        quotient++;
+    }
+    // ceil if x still above 0
+    if(x > 0) { quotient++; } 
+    // return quotient
+    return quotient;
+}
+
 uint32_t mod32(uint32_t x, uint32_t y) {
     return x - (y * divide32(x,y));
 }

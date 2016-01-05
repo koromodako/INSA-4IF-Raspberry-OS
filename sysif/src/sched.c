@@ -70,10 +70,10 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
     }
 
     /*
-     *  La ligne suivante alloue la mémoire nécessaire au stockage du pcb du
-     *  processus en cours de création. Il est difficile d'envisager l'allocation 
-     *  de cette zone de mémoire seulement dans la table de page du processus.
-     *  Nous choisissons donc de conserver cette section de mémoire dans l'espace kernel. 
+        La ligne suivante alloue la mémoire nécessaire au stockage du pcb du
+        processus en cours de création. Il est difficile d'envisager l'allocation 
+        de cette zone de mémoire seulement dans la table de page du processus.
+        Nous choisissons donc de conserver cette section de mémoire dans l'espace kernel. 
      */
     pcb_s * pcb = (pcb_s *) kAlloc(sizeof(pcb_s)); 
 
@@ -87,22 +87,17 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
     // Initialisation des champs paramétrables
     pcb->entry = entry;
     pcb->priority = priority;
+    
+    pcb->sp_start = (uint32_t *) vmem_alloc_in_userland(pcb, SIZE_STACK_PROCESS);
+    //pcb->sp_start = (uint32_t*) kAlloc(SIZE_STACK_PROCESS);
 
-    // Pile de 2500 uint32_t
-    // On alloue maintenant la stack dans la table de page du processus pour l'isoler
-    //  en utilisant vmem_alloc_in_userland et pas sys_mmap car sys_mmap utilise la 
-    //  table des pages du processus courant (ici kmain). 
-    
-    //pcb->sp_start = (uint32_t *) vmem_alloc_in_userland(pcb, SIZE_STACK_PROCESS);
-    pcb->sp_start = (uint32_t*) kAlloc(SIZE_STACK_PROCESS);
-    
     // On replace le pointeur de pile au départ de cette dernière
     pcb->sp = pcb->sp_start + SIZE_STACK_PROCESS + 1;
 
     // Initialisation du champ SPSR
     pcb->cpsr = 0b10000; // Valeur du SPSR en mode USER
 
-    log_nfo("New process created, entry=.");
+    log_nfo("New process created, entry=");
     log_int((int)entry);
     log_cr();
 
@@ -197,11 +192,6 @@ void do_sys_yield(pcb_s * context)
     {
         context->registres[i] = current_process->registres[i];
     }
-
-    // Invalidate TLB
-    __asm("mcr p15, 0, r0, c8, c6, 0");
-    // Configure MMU with new page table
-    configure_mmu_C((unsigned int) current_process->page_table);
 }
 
 // Appel système : exit --------------------------------------------------------
