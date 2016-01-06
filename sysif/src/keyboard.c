@@ -25,7 +25,7 @@
 // Variables globales
 u16 keys[KEYBOARDS_LIMIT][KEYDOWN_BUFFER_SIZE] = {
     { 0x0}
-}; // Buffer des 6 dernières touches enfoncées pour chaque clavier
+}; // Buffer des 6 dernieres touches enfoncees pour chaque clavier
 
 char normalKeys[] ={
     0x0, 0x0, 0x0, 0x0, 'a', 'b', 'c', 'd',
@@ -103,18 +103,18 @@ void KeyboardsUpdate(void) {
     // Pour chaque clavier
     u32 kbd_ind;
     for (kbd_ind = 0; kbd_ind < min(KeyboardCount(), KEYBOARDS_LIMIT); ++kbd_ind) {
-        // Récupère l'adresse du clavier a l'index souhaité
+        // Recupere l'adresse du clavier a l'index souhaite
         u32 kbd_addr = KeyboardGetAddress(kbd_ind);
         // Si l'adresse n'est pas nulle
         if (kbd_addr != 0) {
-            // Sauvegarde des KEYDOWN_BUFFER_SIZE touches appuyées
+            // Sauvegarde des KEYDOWN_BUFFER_SIZE touches appuyees
             u32 i;
             for (i = 0; i < KeyboardCount(kbd_addr); ++i) {
                 keys[kbd_ind][i] = KeyboardGetKeyDown(kbd_addr, i);
             }
             // Verification de l'etat du clavier
             if (KeyboardPoll(kbd_addr) != 0) {
-                return; // Le clavier a probablement été deconnecté
+                return; // Le clavier a probablement ete deconnecte
             }
         }
     }
@@ -137,12 +137,12 @@ char KeyboardGetChar() {
     // Pour chaque clavier
     u32 kbd_ind;
     for (kbd_ind = 0; kbd_ind < min(KeyboardCount(), KEYBOARDS_LIMIT); ++kbd_ind) {
-        // Récupère l'adresse du clavier a l'index souhaité
+        // Recupere l'adresse du clavier a l'index souhaite
         u32 kbd_addr = KeyboardGetAddress(kbd_ind);
         // Si l'adresse n'est pas nulle
         if (kbd_addr != 0) {
             KeyboardLedsOff();
-            // Lecture des KEYDOWN_BUFFER_SIZE touches enfoncées
+            // Lecture des KEYDOWN_BUFFER_SIZE touches enfoncees
             u32 i;
             for (i = 0; i < KEYDOWN_BUFFER_SIZE; ++i) {
                 // On recupere les touches du buffer
@@ -150,20 +150,20 @@ char KeyboardGetChar() {
                 // Si la touche est 0 alors erreur clavier
                 if (key == 0) { // On interrompt
                     break;
-                }                    // Si deja appuyée
+                }                    // Si deja appuyee
                 else if (KeyWasDown(key) != 0) { // Aller au caractere suivant
                     continue;
                 }                    // Si en dehors de la table
                 else if (key > 103) { // Aller au caractere suivant
                     continue;
                 }
-                // On vérifie si il y a un modifier
+                // On verifie si il y a un modifier
                 struct KeyboardModifiers mods = KeyboardGetModifiers(kbd_addr);
                 char ckey;
                 // Si le modifier shift existe
-                if (mods.LeftShift == 1) { // On retourne le caractère depuis la table shift
+                if (mods.LeftShift == 1) { // On retourne le caractere depuis la table shift
                     ckey = shiftKeys[key];
-                } else if (mods.RightShift == 1) {// On retourne le caractère depuis la table shift
+                } else if (mods.RightShift == 1) {// On retourne le caractere depuis la table shift
                     ckey = shiftKeys[key];
                 } else { // On retourne le caractere depuis la table normale
                     ckey = normalKeys[key];
@@ -184,7 +184,7 @@ void KeyboardLedsOn() {
     // Pour chaque clavier
     u32 kbd_ind;
     for (kbd_ind = 0; kbd_ind < min(KeyboardCount(), KEYBOARDS_LIMIT); ++kbd_ind) {
-        // Récupère l'adresse du clavier a l'index souhaité
+        // Recupere l'adresse du clavier a l'index souhaite
         u32 kbd_addr = KeyboardGetAddress(kbd_ind);
         // Si l'adresse n'est pas nulle
         if (kbd_addr != 0) {
@@ -207,7 +207,7 @@ void KeyboardLedsOff() {
     // Pour chaque clavier
     u32 kbd_ind;
     for (kbd_ind = 0; kbd_ind < min(KeyboardCount(), KEYBOARDS_LIMIT); ++kbd_ind) {
-        // Récupère l'adresse du clavier a l'index souhaité
+        // Recupere l'adresse du clavier a l'index souhaite
         u32 kbd_addr = KeyboardGetAddress(kbd_ind);
         // Si l'adresse n'est pas nulle
         if (kbd_addr != 0) {
@@ -234,7 +234,7 @@ u32 getKeyDownCount() {
     // Pour chaque clavier
     u32 kbd_ind;
     for (kbd_ind = 0; kbd_ind < KeyboardCount(); ++kbd_ind) {
-        // Récupère l'adresse du clavier a l'index souhaité
+        // Recupere l'adresse du clavier a l'index souhaite
         u32 kbd_addr = KeyboardGetAddress(kbd_ind);
         // Si l'adresse n'est pas nulle
         if (kbd_addr != 0) {

@@ -33,29 +33,29 @@ extern int uart_error;
 // Initialise l'UART
 void uart_init(void);
 
-// Envoie un caractère
+// Envoie un caractere
 void uart_send_char(const char c);
 
-// Permet d'envoyer des chaine de caractère. Celle-ci doit se terminer
-//	par le caractère nul.
+// Permet d'envoyer des chaine de caractere. Celle-ci doit se terminer
+//	par le caractere nul.
 void uart_send_str(const char *data);
 
-// Permet d'envoyer un entier signé
+// Permet d'envoyer un entier signe
 void uart_send_int(int n);
 
 // Permet de savoir si la receive fifo est vide
 int uart_is_receive_fifo_empty(void);
 
-// Permet de recevoir une chaine de caractère.
-// Bloque jusqu'a la reception de n-1 caractères, ou la reception
-//	du caractère nul.
-// NOTE : Un caractère nul est placé automatiquement en fin de
+// Permet de recevoir une chaine de caractere.
+// Bloque jusqu'a la reception de n-1 caracteres, ou la reception
+//	du caractere nul.
+// NOTE : Un caractere nul est place automatiquement en fin de
 //	chaine contenu dans le buffer.
 int uart_receive_str(char *buffer, unsigned int n);
 
-// Permet de lire un entier signé.
+// Permet de lire un entier signe.
 // Renvoie la valeur lue
-// NOTE : en cas d'erreur, uart_error est mis à -1
+// NOTE : en cas d'erreur, uart_error est mis a -1
 int uart_receive_int(void);
 
 #endif

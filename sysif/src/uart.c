@@ -22,14 +22,14 @@ int uart_error;
 // Initialisation
 void uart_init(void)
 {
-	// On désactive UART
+	// On desactive UART
 	Set32(UART_CR, 0u);
 
 	// Initialisation GPIO (14 et 15)
-	// On règle la fonction sur ALT0 pour les bons pins
+	// On regle la fonction sur ALT0 pour les bons pins
 	Set32(GPIO_FSEL1, Get32(GPIO_FSEL1) | (GPIO_ALT0 << GPIO_TDX0_OFF));
 	Set32(GPIO_FSEL1, Get32(GPIO_FSEL1) | (GPIO_ALT0 << GPIO_RDX0_OFF));
-	// On règle le pull down
+	// On regle le pull down
 	Set32(GPIO_PUD, 0u);
 	delay(150u);
 	Set32(GPIO_PUDCLK0, (1u << UART_TXD0_PIN) | (1u << UART_RDX0_PIN));
@@ -40,9 +40,9 @@ void uart_init(void)
 	// On initialisation UART
 	// On clear la line
 	Set32(UART_LCRH, 0u);
-	// On clear les intéruptions
+	// On clear les interuptions
 	Set32(UART_ICR, 0u);
-	// On règles le baud rate à 115200 baud
+	// On regles le baud rate a 115200 baud
 	Set32(UART_IBRD, 1u);
 	Set32(UART_FBRD, 40u);
 	// Line control :
@@ -63,15 +63,15 @@ void uart_init(void)
 	// Controle :
 	// - on active l'UART
 	// - pas de loopback
-	// - activation de la réception/émission
+	// - activation de la reception/emission
 	// - pas de RTS
 	// - pas de flowcontrol
 	Set32(UART_CR, (1u << 0u) | (1u << 8u) | (1u << 9u));
 }
 
 //
-// Permet d'envoyer des chaine de caractère. Celle-ci doit se terminer
-//	par le caractère nul.
+// Permet d'envoyer des chaine de caractere. Celle-ci doit se terminer
+//	par le caractere nul.
 void uart_send_str(const char *data)
 {
 	if (*data == 0)
@@ -83,21 +83,21 @@ void uart_send_str(const char *data)
 	{
 		// On attend que l'UART soit disponible
 		while ((Get32(UART_FR) & (1u << 5u)) != 0u);
-		// On écrit la donnée
+		// On ecrit la donnee
 		Set32(UART_DR, (unsigned int)*(data++));
 
 	} while (*data != 0);
 
 	// On attend que l'UART soit disponible
 	while ((Get32(UART_FR) & (1u << 5u)) != 0u);
-	// Puis on envoie le caractère nul
+	// Puis on envoie le caractere nul
 #ifdef RPI
 	Set32(UART_DR, 0u);
 #endif
 }
 
 //
-// Permet d'envoyer un entier signé
+// Permet d'envoyer un entier signe
 void uart_send_int(int n)
 {
 	int ten_pow;
@@ -114,7 +114,7 @@ void uart_send_int(int n)
 		return;
 	}
 
-	// Négatif ?
+	// Negatif ?
 	if ((n & 0x80000000) != 0)
 	{
 		str[str_i++] = '-';
@@ -158,10 +158,10 @@ void uart_send_int(int n)
 }
 
 //
-// Permet de recevoir des caractères
-// Block jusqu'a la reception de n-1 caractères, ou la reception
-//	du caractère nul.
-// NOTE : Un caractère nul est placé automatiquement en fin de
+// Permet de recevoir des caracteres
+// Block jusqu'a la reception de n-1 caracteres, ou la reception
+//	du caractere nul.
+// NOTE : Un caractere nul est place automatiquement en fin de
 //	chaine.
 int uart_receive_str(char *buffer, unsigned int n)
 {
@@ -182,7 +182,7 @@ int uart_receive_str(char *buffer, unsigned int n)
 		// Lecture du byte
 		byte = Get32(UART_DR) & 0xFFu;
 
-		// On vérifique que se n'est pas la fin
+		// On verifique que se n'est pas la fin
 		if (byte == 0u)
 		{
 			break;
@@ -193,15 +193,15 @@ int uart_receive_str(char *buffer, unsigned int n)
 	}
 	while (--n != 0u);
 
-	*buffer = 0; // Caractère de fin
+	*buffer = 0; // Caractere de fin
 
 	return i;
 }
 
 //
-// Permet de lire un entier signé.
+// Permet de lire un entier signe.
 // Renvoie la valeur lue
-// NOTE : en cas d'erreur, uart_error est mis à -1
+// NOTE : en cas d'erreur, uart_error est mis a -1
 int uart_receive_int(void)
 {
 	char buffer[16];
@@ -211,10 +211,10 @@ int uart_receive_int(void)
 
 	uart_error = 0;
 
-	// On lit la chaine de caractère correspondant au nombre
+	// On lit la chaine de caractere correspondant au nombre
 	str_c = uart_receive_str(buffer, 16u);
 
-	// Si il est négatif...
+	// Si il est negatif...
 	if (*data == '-')
 	{
 		neg = 1;
@@ -226,7 +226,7 @@ int uart_receive_int(void)
 		neg = 0;
 	}
 
-	// On enlève les 0 de tête, si il y en a
+	// On enleve les 0 de tête, si il y en a
 	while ((str_c > 0) && (*data == 48))
 	{
 		data++;
@@ -239,7 +239,7 @@ int uart_receive_int(void)
 		return 0;
 	}
 	
-	// On vérifie que le nombre n'est pas trop grand
+	// On verifie que le nombre n'est pas trop grand
 	if (str_c > 10)
 	{
 		uart_error = -1;

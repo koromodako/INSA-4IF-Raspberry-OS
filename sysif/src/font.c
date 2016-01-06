@@ -358,7 +358,7 @@ void advanceCursor(FontCursor * cursor, FontTable * font, uint32_t width)
 void drawLetter(FontCursor * cursor, FontTable * font, char letter)
 {
     uint32_t asciiValue = (uint32_t) letter;
-    if (letter == '\n') { // Retour à la ligne
+    if (letter == '\n') { // Retour a la ligne
 
         cursor->cursor_y += font->max_height;
         cursor->cursor_x = cursor->min_x;
@@ -379,8 +379,8 @@ void drawLetter(FontCursor * cursor, FontTable * font, char letter)
         while(line < heightLetter) {
             uint32_t col = 0;
             while (col < widthLetter) {
-                // Vérifie si l'on doit tracer un pixel blanc à cet endroit 
-                // Attention : pour les xbm, on ignore les bits qui dépassent de la ligne
+                // Verifie si l'on doit tracer un pixel blanc a cet endroit 
+                // Attention : pour les xbm, on ignore les bits qui depassent de la ligne
                 // TODO : faire une explication plus longue dans le readme
                 if ((bitmapLetter[line * nbBlockPerLine + divide32(col, SIZE_OF_BLOCK)] >> mod32(col, SIZE_OF_BLOCK)) & 1) { 
                     put_pixel_RGB24(cursor->cursor_x + col, cursor->cursor_y + line, 255, 255, 255);

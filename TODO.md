@@ -1,6 +1,7 @@
 ------------------------------ TODO ------------------------------
 
+- Trouver pourquoi on alloue pas la totalité des frames dans init_miror_section
 
-- Modifier la procédure init_page_section pour allouer exactement le bon nombre de frames comme le fait vmem_alloc_in_userland
+- Vérifier la bonne isolation de la pile et sa taille.
 
-- Debugger vmem_alloc_in_userland pour vérifier qu'elle alloue bien juste ce qu'il faut en frames.
+- Vérifier également l'initialisation de la table d'ocupation des frames

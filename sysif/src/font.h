@@ -22,17 +22,17 @@ typedef struct {
 FontTable * initFont();
 
 /**
- * Initialise le curseur pour écrire
+ * Initialise le curseur pour ecrire
  */
 FontCursor * initCursor(uint32_t min_x, uint32_t min_y, uint32_t max_x, uint32_t max_y);
 
 /**
- * Permet d'afficher une lettre à la position du curseur et l'avance
+ * Permet d'afficher une lettre a la position du curseur et l'avance
  */
 void drawLetter(FontCursor * cursor, FontTable * font, char letter);
 
 /**
- * Permet d'afficher une phrase à la position du curseur et l'avance
+ * Permet d'afficher une phrase a la position du curseur et l'avance
  */
 void drawLetters(FontCursor * cursor, FontTable * font, char * letters);
 
@@ -42,7 +42,7 @@ void drawLetters(FontCursor * cursor, FontTable * font, char * letters);
 void advanceCursor(FontCursor * cursor, FontTable * font, uint32_t width);
 
 /**
- * Vérification de la position du curseur et retour à la ligne (ou reset) en cas de dépassement de la zone
+ * Verification de la position du curseur et retour a la ligne (ou reset) en cas de depassement de la zone
  */
 void checkCursor(FontCursor * cursor, FontTable * font);
 

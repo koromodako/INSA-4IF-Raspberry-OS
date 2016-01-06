@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # ImageMagick
-command -v convert >/dev/null 2>&1 || { echo >&2 "imagemagick n'est pas installé, il est alors impossible de générer la police demandée. Essayer 'sudo apt-get install imagemagick'"; exit 1; }
+command -v convert >/dev/null 2>&1 || { echo >&2 "imagemagick n'est pas installe, il est alors impossible de generer la police demandee. Essayer 'sudo apt-get install imagemagick'"; exit 1; }
 
 # Graphics Magick
-command -v gm >/dev/null 2>&1 || { echo >&2 "graphics magick n'est pas installé, il est alors impossible de générer la police demandée. Essayer 'sudo apt-get install graphicsmagick'"; exit 1; }
+command -v gm >/dev/null 2>&1 || { echo >&2 "graphics magick n'est pas installe, il est alors impossible de generer la police demandee. Essayer 'sudo apt-get install graphicsmagick'"; exit 1; }
 
 FONT_SIZE=16
 FONT_NAME=Courier-Regular
@@ -22,9 +22,9 @@ mkdir tmp-font
 
 if [ -d "${TMP_DIR_NAME}" ]
 then
-       	echo "Création du répertoire temporaire ${TMP_DIR_PATH}/${TMP_DIR_NAME}"
+       	echo "Creation du repertoire temporaire ${TMP_DIR_PATH}/${TMP_DIR_NAME}"
 else
-       	echo "Erreur lors de la création du répertoire temporaire ${TMP_DIR_PATH}/${TMP_DIR_NAME}"
+       	echo "Erreur lors de la creation du repertoire temporaire ${TMP_DIR_PATH}/${TMP_DIR_NAME}"
 	exit 1
 fi
 
@@ -48,7 +48,7 @@ done
 echo "
 #endif /* FONT_SPEC_H_ */" >> ${FONT_FILES_PATH}/${FONT_FILE_NAME}
 
-echo "Création du fichier ${FONT_FILES_PATH}/${FONT_FILE_NAME}"
+echo "Creation du fichier ${FONT_FILES_PATH}/${FONT_FILE_NAME}"
 
 read -p "mv font_spec.h ? (Y/n) : " -r
 echo ""

@@ -4,15 +4,15 @@
 #include "sched.h"
 
 /**
- *	Cette procédure initialise le scheduler simple
+ *	Cette procedure initialise le scheduler simple
  */
 pcb_s * simple_sched_init(pcb_s * kmain_pcb);
 /**
- *	Cette procédure élit un nouveau processus et supprime les processus terminés
+ *	Cette procedure elit un nouveau processus et supprime les processus termines
  */
 pcb_s * simple_sched_elect(void);
 /**
- *	Cette procédure enregistre un nouveau processus auprès du scheduler
+ *	Cette procedure enregistre un nouveau processus aupres du scheduler
  */
 void simple_sched_add(pcb_s * newProcess);
 

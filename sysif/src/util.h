@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-// ------------------------ Les fonctions utils données par le prof
+// ------------------------ Les fonctions utils donnees par le prof
 #define PANIC() do { kernel_panic(__FILE__,__LINE__) ; } while(0)
 #define ASSERT(exp) do { if(!(exp)) PANIC(); } while(0)
 
@@ -47,7 +47,7 @@ typedef enum {
 	PS_TERMINATED = 0X03
 } PROCESS_STATE;
 
-// Nombre de niveaux de priorité
+// Nombre de niveaux de priorite
 #define PRIORITY_COUNT 6
 // Enum proc priority
 typedef enum {
