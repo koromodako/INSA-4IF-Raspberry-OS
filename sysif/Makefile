@@ -13,7 +13,7 @@ BUILDDIR = build
 SOURCEDIR = src
 TOOLSDIR = tools
 LIBDIR = lib
-SDCARDDIR = /media/hverlin/boot
+SDCARDDIR = /media/antitoine/boot
 UMOUNTDEV = /dev/mmcblk0p1 /dev/mmcblk0p2
 
 # options à passer à la fois au compilateur C et à l'assembleur
@@ -73,8 +73,8 @@ put_img_in_sdcard: kernel_for_sdcard
 launch: kernel_for_qemu
 	make -C $(TOOLSDIR)/
 
-image.o: blob.bin
-	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $(BUILDDIR)/$@
+$(BUILDDIR)/image.o: image.ppm
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $@
 
 ## Build
 

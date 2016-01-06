@@ -199,11 +199,11 @@ void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t
         offset = (y * pitch) + (x * 3);
         ptr = (uint32_t*) (fb_address + offset);
 #ifdef QEMU
+        *((uint8_t*) ptr) = red;
+        *((uint8_t*) (ptr + 2)) = blue;
+#else
         *((uint8_t*) ptr) = blue;
         *((uint8_t*) (ptr + 2)) = red;
-#else
-        *((uint8_t*) ptr) = red;
-        *((uint8_t*) (ptr + 2)) = blue;       
 #endif
         *((uint8_t*) (ptr + 1)) = green;
 

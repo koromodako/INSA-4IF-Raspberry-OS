@@ -14,8 +14,8 @@
 
 static FontTable * font;
 
-extern unsigned char _binary_blob_bin_start;
-extern unsigned char _binary_blob_bin_end;
+extern unsigned char _binary_image_ppm_start;
+extern unsigned char _binary_image_ppm_end;
 
 void display_process_info() {
 
@@ -62,7 +62,7 @@ void display_process_text_right() {
     FontCursor * cursorRight = initCursor(divide32(getResolutionX(), 2) + 10, 90, getResolutionX() - 10, getResolutionY() - 10);
     drawLetters(cursorRight, font, "lecture de l'image ... \n");
 
-    unsigned char *pblob = &_binary_blob_bin_start;
+    unsigned char *pblob = &_binary_image_ppm_start;
     while(((char) *pblob) != '\n')
     {
        pblob++;
@@ -129,6 +129,42 @@ void display_process_text_right() {
     itoa(height, height_string);
     drawLetters(cursorRight, font, height_string);
 
+    // on avance jusqu'au début de la couleur
+    while(((char) *pblob) != '\n')
+    {
+       pblob++;
+    }
+
+    // On lit le nombre de couleur
+    drawLetters(cursorRight, font, "\nColor ");
+
+    uint32_t size_char_clr = 0;
+    size_char_clr++;
+   pblob++;
+    while(((char) *pblob) != '\n')
+    {
+        size_char_clr++;
+       pblob++;
+    }
+
+    drawLetters(cursorRight, font, " : ");
+
+    uint32_t color = 0;
+    mult = size_char_clr - 1;
+    power_mult = 1;
+    while(mult > 0)
+    {
+       pblob--;
+       color += (((uint32_t) ((char) *pblob)) - 48) * (power_mult);
+       power_mult *= 10;
+       mult--;
+    }
+
+    char * color_string = (char *) kAlloc(sizeof (char) * 14);
+    itoa(color, color_string);
+    drawLetters(cursorRight, font, color_string);
+
+
     while(((char) *pblob) != '\n')
     {
        pblob++;
@@ -149,13 +185,14 @@ void display_process_text_right() {
     {
       for (i = 0; i < width; ++i)
        {
-        uint32_t red = (uint32_t) *pblob;  /* red */
+        uint32_t red = (uint32_t) *pblob;  // red
         pblob++;
-        uint32_t green  = (uint32_t) *pblob;  /* green */
+        uint32_t green  = (uint32_t) *pblob;  // green
         pblob++;
-        uint32_t blue = (uint32_t) *pblob;  /* blue */
+        uint32_t blue = (uint32_t) *pblob;  // blue
         pblob++;
-        put_pixel_RGB24(i, j, red, green, blue);
+        put_pixel_RGB24(i, j,  green , blue, red);
+        //put_pixel_RGB24(i, j, red, green, blue);
         }
     }
 
@@ -169,9 +206,6 @@ void display_process_text_right() {
 
     uint32_t sleep = 0;
     for (sleep = 0; sleep < 100000; sleep++);
-
-    return;
-    
 }
 
 void kmain(void) {
