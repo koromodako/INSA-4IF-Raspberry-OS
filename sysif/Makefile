@@ -97,7 +97,7 @@ $(BUILDDIR)/%.o: $(SOURCEDIR)/%.s | $(BUILDDIR)
 
 # édition de liens
 $(BUILDDIR)/kernel.elf: $(OBJECTS) $(BUILDDIR)/kmain.o
-	arm-none-eabi-ld $^ -o $@ -T $(SOURCEDIR)/sysif.ld -Map $(BUILDDIR)/mapfile.map -L$(LIBDIR) -lcsud
+	arm-none-eabi-ld --no-undefined $^ -o $@ -T $(SOURCEDIR)/sysif.ld -Map $(BUILDDIR)/mapfile.map -L$(LIBDIR) -lcsud
 
 # conversion de l'image pour transfert sur carte SD
 $(BUILDDIR)/kernel.img: $(BUILDDIR)/kernel.elf
