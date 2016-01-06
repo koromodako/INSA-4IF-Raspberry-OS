@@ -14,6 +14,9 @@
 
 static FontTable * font;
 
+extern unsigned char _binary_blob_bin_start;
+extern unsigned char _binary_blob_bin_end;
+
 void display_process_info() {
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
     drawLetters(cursor, font, "Hello World !\n");
@@ -79,17 +82,118 @@ void display_process_text_left() {
 
 void display_process_text_right() {
     FontCursor * cursorRight = initCursor(divide32(getResolutionX(), 2) + 10, 90, getResolutionX() - 10, getResolutionY() - 10);
-    uint32_t letter = 33;
-    while (1) {
-        drawLetter(cursorRight, font, (char) letter);
-        letter++;
-        if (letter > 126) {
-            letter = 33;
-        }
+    drawLetters(cursorRight, font, "lecture de l'image ... \n");
 
-        uint32_t sleep = 0;
-        for (sleep = 0; sleep < 100000; sleep++);
+    unsigned char *pblob = &_binary_blob_bin_start;
+    while(((char) *pblob) != '\n')
+    {
+       pblob++;
     }
+
+    // On lit la largeur
+    drawLetters(cursorRight, font, "width ");
+
+    uint32_t size_char_x = 0;
+    while(((char) *pblob) != ' ')
+    {
+       size_char_x++;
+       pblob++;
+    }
+
+    drawLetters(cursorRight, font, " : ");
+
+    uint32_t width = 0;
+    uint32_t mult = size_char_x - 1;
+    uint32_t power_mult = 1;
+    while(mult > 0)
+    {
+       pblob--;
+       //width += ((uint32_t) ((char) *pblob)) * (size_char_x - mult); 
+       width += (((uint32_t) ((char) *pblob)) - 48) * (power_mult); 
+       power_mult *= 10;
+       mult--;
+    }
+
+    char * width_string = (char *) kAlloc(sizeof (char) * 14);
+    itoa(width, width_string);
+    drawLetters(cursorRight, font, width_string);
+
+
+    // on avance jusqu'au début de la hauteur
+    while(((char) *pblob) != ' ')
+    {
+       pblob++;
+    }
+
+    // On lit la hauteur
+    drawLetters(cursorRight, font, "\nheight");
+    uint32_t size_char_y = 0;
+    while(((char) *pblob) != '\n')
+    {
+       size_char_y++;
+       pblob++;
+    }    
+
+   drawLetters(cursorRight, font, " : ");
+
+    uint32_t height = 0;
+    mult = size_char_y - 1;
+    power_mult = 1;
+    while(mult > 0)
+    {
+       pblob--;
+       height += ((uint32_t) ((char) *pblob) - 48) * (power_mult); 
+       power_mult *= 10;
+       mult--;
+    }
+
+    char * height_string = (char *) kAlloc(sizeof (char) * 14);
+    itoa(height, height_string);
+    drawLetters(cursorRight, font, height_string);
+
+    while(((char) *pblob) != '\n')
+    {
+       pblob++;
+    }
+
+    while(((char) *pblob) != '\n')
+    {
+       pblob++;
+    }
+
+    drawLetters(cursorRight, font, "\nfin de lecture du header");
+
+
+    uint32_t i;
+    uint32_t j;
+
+    for (j = 0; j < height; ++j)
+    {
+      for (i = 0; i < width; ++i)
+       {
+        uint32_t red = (uint32_t) *pblob;  /* red */
+        pblob++;
+        uint32_t green  = (uint32_t) *pblob;  /* green */
+        pblob++;
+        uint32_t blue = (uint32_t) *pblob;  /* blue */
+        pblob++;
+        put_pixel_RGB24(i, j, red, green, blue);
+        }
+    }
+
+    // uint32_t letter = 33;
+    // while (1) {
+    //     drawLetter(cursorRight, font, (char) letter);
+    //     letter++;
+    //     if (letter > 126) {
+    //         letter = 33;
+    //     }
+
+    uint32_t sleep = 0;
+    for (sleep = 0; sleep < 100000; sleep++);
+
+    return;
+    
 }
 
 void kmain(void) {
@@ -109,7 +213,7 @@ void kmain(void) {
     // Creation des processus
     create_process((func_t*) & display_process_info, PP_HIGH);
     create_process((func_t*) & display_process_info_keyboard, PP_HIGH);
-    create_process((func_t*) & display_process_text_left, PP_MEDIUM);
+   // create_process((func_t*) & display_process_text_left, PP_MEDIUM);
     create_process((func_t*) & display_process_text_right, PP_MEDIUM);
 
     // Initialisation du timer matériel pour les IRQ

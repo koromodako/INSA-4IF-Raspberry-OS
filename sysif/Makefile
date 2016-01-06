@@ -13,7 +13,7 @@ BUILDDIR = build
 SOURCEDIR = src
 TOOLSDIR = tools
 LIBDIR = lib
-SDCARDDIR = /media/antitoine/boot
+SDCARDDIR = /media/hverlin/boot
 UMOUNTDEV = /dev/mmcblk0p1 /dev/mmcblk0p2
 
 # options à passer à la fois au compilateur C et à l'assembleur
@@ -31,7 +31,7 @@ CFLAGS_STD=$(CFLAGS_ALL)
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
 # Object files (excluding kmain)
-OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs])))))
+OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs]))))) $(BUILDDIR)/image.o
 
 # check whether kmain does exists. typically this would get triggered
 # by a command like "make KMAIN=" (i.e. with no value for KMAIN)
@@ -67,11 +67,14 @@ kernel_for_qemu: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.list
 kernel_for_sdcard: CFLAGS=$(CFLAGS_STD) 
 kernel_for_sdcard: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.img 
 
-put_img_in_sdcard : kernel_for_sdcard
+put_img_in_sdcard: kernel_for_sdcard
 	cp $(BUILDDIR)/kernel.img $(SDCARDDIR)/kernel.img && umount $(UMOUNTDEV)
 
 launch: kernel_for_qemu
 	make -C $(TOOLSDIR)/
+
+image.o: blob.bin
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $(BUILDDIR)/$@
 
 ## Build
 
@@ -102,7 +105,7 @@ $(BUILDDIR)/kernel.img: $(BUILDDIR)/kernel.elf
 
 # désassemblage
 $(BUILDDIR)/kernel.list: $(BUILDDIR)/kernel.elf
-	arm-none-eabi-objdump -d -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
+	arm-none-eabi-objdump -d -t -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
 
 
 #### Tests #####################################################################
