@@ -18,12 +18,13 @@ b *irq_handler
 b *data_handler
 
 b *user_process_1
+b *user_process_2
 b *sys_mmap
 b *sys_munmap
 
 b create_process
 b kmain
-b vmem_alloc_in_userland
+#b vmem_alloc_in_userland
 
 
 source utils.gdb

@@ -18,8 +18,17 @@ void user_process_1(void) {
     uint8_t * addr = (uint8_t *) sys_mmap(8);
     (*addr) = 0xF;
 
-    while (1) {
-        addr = addr + 1;
+    while(1) {
+        (*addr)++;
+    }
+}
+
+void user_process_2(void) {
+    uint8_t * addr = (uint8_t *) sys_mmap(8);
+    (*addr) = 0xFF;
+
+    while(1) {
+        (*addr)++;
     }
 }
 
@@ -30,6 +39,7 @@ void kmain(void) {
 
     // Creation des processus
     create_process((func_t*) & user_process_1, PP_HIGH);
+    create_process((func_t*) & user_process_2, PP_HIGH);
 
     // Initialisation du timer materiel pour les IRQ
     timer_init();

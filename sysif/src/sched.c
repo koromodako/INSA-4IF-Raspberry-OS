@@ -92,9 +92,6 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
 #endif
     // on replace le pointeur de pile au depart de cette derniere
     pcb->sp = (uint32_t*)((uint32_t)(pcb->sp_start) + SIZE_STACK_PROCESS + 1);
-    // DEBUG --------------------------------------- DEBUG
-    uint32_t addr = vmem_translate_ps((uint32_t)(pcb->sp), pcb); addr=addr;
-    // DEBUG --------------------------------------- DEBUG
 
     // initialisation du champ SPSR
     pcb->cpsr = 0b10000; // Valeur du SPSR en mode USER
