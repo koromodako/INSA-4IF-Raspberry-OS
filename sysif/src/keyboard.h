@@ -14,7 +14,7 @@
 char keyboardCall();
 
 /**
- *	Cette fonction met en mémoire les 6 dernières touches appuyées de chaque clavier
+ *	Cette fonction met en memoire les 6 dernieres touches appuyees de chaque clavier
  */
 void KeyboardsUpdate(void);
 /**
@@ -22,7 +22,7 @@ void KeyboardsUpdate(void);
  */
 int KeyWasDown(u16 key);
 /**
- * Cette fonction retourne le caractere correspondant à la derniere touche enfoncée
+ * Cette fonction retourne le caractere correspondant a la derniere touche enfoncee
  */
 char KeyboardGetChar();
 

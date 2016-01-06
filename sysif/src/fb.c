@@ -2,18 +2,18 @@
 #include "fb.h"
 
 /*
- * Adresse du framebuffer, taille en byte, résolution de l'écran, pitch et depth (couleurs)
+ * Adresse du framebuffer, taille en byte, resolution de l'ecran, pitch et depth (couleurs)
  */
 static uint32_t fb_address;
 static uint32_t fb_size_bytes;
 static uint32_t fb_x, fb_y, pitch, depth;
 
 /*
- * Fonction pour lire et écrire dans les mailboxs
+ * Fonction pour lire et ecrire dans les mailboxs
  */
 
 /*
- * Fonction permettant d'écrire un message dans un canal de mailbox
+ * Fonction permettant d'ecrire un message dans un canal de mailbox
  */
 void MailboxWrite(uint32_t message, uint32_t mailbox) {
     uint32_t status;
@@ -33,10 +33,10 @@ void MailboxWrite(uint32_t message, uint32_t mailbox) {
          * Permet de flusher
          */
         data_mem_barrier();
-    } while (status & 0x80000000);     // Vérification si la mailbox est pleinne
+    } while (status & 0x80000000);     // Verification si la mailbox est pleinne
 
     data_mem_barrier();
-    mmio_write(MAILBOX_WRITE, message | mailbox); // Combine le message à envoyer et le numéro du canal de la mailbox puis écrit en mémoire la combinaison
+    mmio_write(MAILBOX_WRITE, message | mailbox); // Combine le message a envoyer et le numero du canal de la mailbox puis ecrit en memoire la combinaison
 }
 
 /*
@@ -54,20 +54,20 @@ uint32_t MailboxRead(uint32_t mailbox) {
             data_mem_barrier();
             status = mmio_read(MAILBOX_STATUS);
             data_mem_barrier();
-        } while (status & 0x40000000); // On vérifie que la mailbox n'est pas vide
+        } while (status & 0x40000000); // On verifie que la mailbox n'est pas vide
 
         data_mem_barrier();
         status = mmio_read(MAILBOX_BASE);
         data_mem_barrier();
 
-        // On conserve uniquement les données et on les retourne
+        // On conserve uniquement les donnees et on les retourne
         if (mailbox == (status & 0x0000000f))
             return status & 0x0000000f;
     }
 }
 
 /*
- * Fonction pour initialiser et écrire dans le framebuffer
+ * Fonction pour initialiser et ecrire dans le framebuffer
  */
 
 int FramebufferInitialize() {
@@ -78,42 +78,42 @@ int FramebufferInitialize() {
     depth = 24;
 
     //
-    // Tout d'abord, on veut récupérer l'adresse en mémoire du framebuffer
+    // Tout d'abord, on veut recuperer l'adresse en memoire du framebuffer
     //
-    mb[0] = 8 * 4;// Taille du buffer i.e. de notre message à envoyer dans la mailbox
-    mb[1] = 0;			// On spécifie qu'on demande quelque chose
+    mb[0] = 8 * 4;// Taille du buffer i.e. de notre message a envoyer dans la mailbox
+    mb[1] = 0;			// On specifie qu'on demande quelque chose
     mb[2] = 0x00040003;	// La question que l'on pose: https://github.com/raspberrypi/firmware/wiki/Mailbox-property-interface
-    mb[3] = 2 * 4;		// La taille de la réponse
-    mb[4] = 0;	// On indique que c'est une question ou un réponse (0 question)
+    mb[3] = 2 * 4;		// La taille de la reponse
+    mb[4] = 0;	// On indique que c'est une question ou un reponse (0 question)
     mb[5] = 0;			// Largeur
     mb[6] = 0;			// Hauteur
     mb[7] = 0;			// Marqueur de fin
 
-    MailboxWrite((uint32_t) (mb + 0x40000000), 8); // On écrit le message dans la mailbox
+    MailboxWrite((uint32_t) (mb + 0x40000000), 8); // On ecrit le message dans la mailbox
 
-    if (((retval = MailboxRead(8)) == 0) || (mb[1] != 0x80000000)) { // On vérifie que le message est passé
+    if (((retval = MailboxRead(8)) == 0) || (mb[1] != 0x80000000)) { // On verifie que le message est passe
         return 0;
     }
 
-    fb_x = mb[5]; // On récupére la largeur en pixel de l'écran
-    fb_y = mb[6]; // On récupére la hauteur en pixel de l'écran
+    fb_x = mb[5]; // On recupere la largeur en pixel de l'ecran
+    fb_y = mb[6]; // On recupere la hauteur en pixel de l'ecran
 
     uint32_t mb_pos = 1;
 
     mb[mb_pos++] = 0;			// C'est une requête
-    mb[mb_pos++] = 0x00048003;// On définit la hauteur et la largeur du framebuffer
-    mb[mb_pos++] = 2 * 4;// On envoi 2 int pour la taille donc on spécifie la taille du buffer
+    mb[mb_pos++] = 0x00048003;// On definit la hauteur et la largeur du framebuffer
+    mb[mb_pos++] = 2 * 4;// On envoi 2 int pour la taille donc on specifie la taille du buffer
     mb[mb_pos++] = 2 * 4;	// Taille du message (tag + indicateur de requête)
     mb[mb_pos++] = fb_x;		// On passe la largeur
     mb[mb_pos++] = fb_y;		// On passe la hauteur
 
-    mb[mb_pos++] = 0x00048004;// On définit la hauteur et la largeur virtuel du framebuffer
-    mb[mb_pos++] = 2 * 4;// On envoi 2 int pour la taille donc on spécifie la taille du buffer
+    mb[mb_pos++] = 0x00048004;// On definit la hauteur et la largeur virtuel du framebuffer
+    mb[mb_pos++] = 2 * 4;// On envoi 2 int pour la taille donc on specifie la taille du buffer
     mb[mb_pos++] = 2 * 4;	// Taille du message (tag + indicateur de requête)
     mb[mb_pos++] = fb_x;		// On passe la largeur
     mb[mb_pos++] = fb_y;		// On passe la hauteur
 
-    mb[mb_pos++] = 0x00048005;	// On définit la profondeur du frame buffer
+    mb[mb_pos++] = 0x00048005;	// On definit la profondeur du frame buffer
     mb[mb_pos++] = 1 * 4;
     mb[mb_pos++] = 1 * 4;
     mb[mb_pos++] = depth;// Profondeur i.e. nombre de couleur (24bit dans notre cas)
@@ -127,14 +127,14 @@ int FramebufferInitialize() {
     mb[mb_pos++] = 0;			// Tag de fin de message
     mb[0] = mb_pos * 4;			// Taille du message dans son entier
 
-    MailboxWrite((uint32_t) (mb + 0x40000000), 8); // On écrit dans la mailbox
+    MailboxWrite((uint32_t) (mb + 0x40000000), 8); // On ecrit dans la mailbox
 
-    if (((retval = MailboxRead(8)) == 0) || (mb[1] != 0x80000000)) { // On vérifie que le message a bien été passé
+    if (((retval = MailboxRead(8)) == 0) || (mb[1] != 0x80000000)) { // On verifie que le message a bien ete passe
         return 0;
     }
 
     /*
-     * On récupére les différente information récupérer de la requête pour pouvoir reconstruire l'adresse du framebuffer et sa taille
+     * On recupere les differente information recuperer de la requête pour pouvoir reconstruire l'adresse du framebuffer et sa taille
      */
     mb_pos = 2;
     unsigned int val_buff_len = 0;
@@ -162,14 +162,14 @@ int FramebufferInitialize() {
     }
 
     //
-    // Récupére le pitch (This indicates the number of bytes between rows. Usually it will be related to the width, but there are exceptions such as when drawing only part of an image.)
+    // Recupere le pitch (This indicates the number of bytes between rows. Usually it will be related to the width, but there are exceptions such as when drawing only part of an image.)
     //
     mb[0] = 8 * 4;		// Taille du buffer
     mb[1] = 0;			// C'est une requête
-    mb[2] = 0x00040008;	// On veut récupérer le pitch
+    mb[2] = 0x00040008;	// On veut recuperer le pitch
     mb[3] = 4;			// Taille du buffer
     mb[4] = 0;			// Taille de la demande
-    mb[5] = 0;			// Le pitch sera stocké ici
+    mb[5] = 0;			// Le pitch sera stocke ici
     mb[6] = 0;			// Tag de fin de message
     mb[7] = 0;
 
@@ -188,7 +188,7 @@ int FramebufferInitialize() {
 }
 
 /*
- * Fonction permettant de dessiner un pixel à l'adresse x,y avec la couleur rgb red.green.blue
+ * Fonction permettant de dessiner un pixel a l'adresse x,y avec la couleur rgb red.green.blue
  */
 void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t blue) {
 
@@ -211,7 +211,7 @@ void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t
 }
 
 /*
- * Dessine sur tous les pixels des couleurs différentes
+ * Dessine sur tous les pixels des couleurs differentes
  */
 /*
 void draw() {
@@ -240,7 +240,7 @@ void draw() {
 */
 
 /*
- * Rempli l'écran de rouge
+ * Rempli l'ecran de rouge
  */
 void drawRed() {
     uint32_t x = 0, y = 0;
@@ -252,7 +252,7 @@ void drawRed() {
 }
 
 /*
- * Rempli l'écran de blanc
+ * Rempli l'ecran de blanc
  */
 void drawBlue() {
     uint32_t x = 0, y = 0;

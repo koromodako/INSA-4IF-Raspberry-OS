@@ -5,11 +5,11 @@
 #include "sched.h"
 
 // Macros ----------------------------------------------------------------------
-#define SIZE_OF_STACK_SEG sizeof(uint32_t*) // Taille d'un élement dans la pile
+#define SIZE_OF_STACK_SEG sizeof(uint32_t*) // Taille d'un element dans la pile
 
-// Appel système : reboot ------------------------------------------------------
+// Appel systeme : reboot ------------------------------------------------------
 /**
- *	Appel système pour rebooter l'OS
+ *	Appel systeme pour rebooter l'OS
  */
 void sys_reboot();
 /**
@@ -17,9 +17,9 @@ void sys_reboot();
  */
 void do_sys_reboot();
 
-// Appel système : nop ---------------------------------------------------------
+// Appel systeme : nop ---------------------------------------------------------
 /**
- *	Appel système pour ne rien faire
+ *	Appel systeme pour ne rien faire
  */
 void sys_nop();
 /**
@@ -27,27 +27,27 @@ void sys_nop();
  */
 void do_sys_nop();
 
-// Appel système : settime -----------------------------------------------------
+// Appel systeme : settime -----------------------------------------------------
 /**
- *	Appel système pour paramétrer le temps
+ *	Appel systeme pour parametrer le temps
  */
 void sys_settime(uint64_t date_ms);
 /**
- *	Appel noyau pour paramétrer le temps
+ *	Appel noyau pour parametrer le temps
  */
 void do_sys_settime(pcb_s * context);
 
-// Appel système : gettime -----------------------------------------------------
+// Appel systeme : gettime -----------------------------------------------------
 /**
- *	Appel système pour recupérer le temps
+ *	Appel systeme pour recuperer le temps
  */
 uint64_t sys_gettime();
 /**
- *	Appel noyau pour recupérer le temps	
+ *	Appel noyau pour recuperer le temps	
  */
 void do_sys_gettime(pcb_s * context);
 
-// Handler des appels systèmes -------------------------------------------------
+// Handler des appels systemes -------------------------------------------------
 /**
  *	SWI_HANDLER
  */

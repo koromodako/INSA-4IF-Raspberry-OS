@@ -2,10 +2,10 @@
 #define _CONFIG_H
 
 /* 
-	-------------------------- Paramètres ---------------------------- 
+	-------------------------- Parametres ---------------------------- 
 */
 /* 
-	Commentez la ligne suivante si le code compilé est émulé par QEMU
+	Commentez la ligne suivante si le code compile est emule par QEMU
 */ 
 //#define RPI
 /* 

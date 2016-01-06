@@ -31,7 +31,7 @@ void kmain(void) {
     // Creation des processus
     create_process((func_t*) & user_process_1, PP_HIGH);
 
-    // Initialisation du timer matériel pour les IRQ
+    // Initialisation du timer materiel pour les IRQ
     timer_init();
     ENABLE_IRQ();
 

@@ -45,20 +45,20 @@ pcb_s * current_process;
  */
 void sched_init(SCHEDULING_POLICY schedPolicy);
 /**
- *  Crée un nouveau processus en allouant de la mémoire pour ce dernier
+ *  Cree un nouveau processus en allouant de la memoire pour ce dernier
  */
 pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority);
 /**
- *  Réalise l'election d'un nouveau processus
+ *  Realise l'election d'un nouveau processus
  */
 void elect(void);
 /**
- *  Démarre le processus courant
+ *  Demarre le processus courant
  */
 void start_current_process(void);
-// Appel système : yieldto -----------------------------------------------------
+// Appel systeme : yieldto -----------------------------------------------------
 /**
- *  Appel système pour passer a un autre process si on connait l'adresse de son PCB
+ *  Appel systeme pour passer a un autre process si on connait l'adresse de son PCB
  */
 void sys_yieldto(pcb_s* dest);
 /**
@@ -66,9 +66,9 @@ void sys_yieldto(pcb_s* dest);
  */
 void do_sys_yieldto(pcb_s * context);
 
-// Appel système : yield -------------------------------------------------------
+// Appel systeme : yield -------------------------------------------------------
 /**
- *  Appel système pour passer a un autre process (rendre la main)
+ *  Appel systeme pour passer a un autre process (rendre la main)
  */
 void sys_yield(void);
 /**
@@ -76,9 +76,9 @@ void sys_yield(void);
  */
 void do_sys_yield(pcb_s * context);
 
-// Appel système : exit --------------------------------------------------------
+// Appel systeme : exit --------------------------------------------------------
 /**
- *  Appel système pour terminer un processus
+ *  Appel systeme pour terminer un processus
  */
 void sys_exit(int status);
 /**
@@ -86,7 +86,7 @@ void sys_exit(int status);
  */
 void do_sys_exit(pcb_s * context);
 
-// Handler des timer système ---------------------------------------------------
+// Handler des timer systeme ---------------------------------------------------
 /**
  *
  */

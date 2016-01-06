@@ -6,16 +6,16 @@
 #include "vmem.h"
 #include <stdint.h>
 
-// Appel système : reboot ------------------------------------------------------
+// Appel systeme : reboot ------------------------------------------------------
 void sys_reboot() 
 {
-    // Positionne le numéro de l'appel système dans r0 : numéro = 1
+    // Positionne le numero de l'appel systeme dans r0 : numero = 1
     SWI(SCI_REBOOT);
 }
 
 void do_sys_reboot()
 {
-    // Reboot pour l'émulateur
+    // Reboot pour l'emulateur
     #if defined QEMU
         __asm("bl 0x8000");
     // Reboot pour le Raspberry Pi
@@ -26,10 +26,10 @@ void do_sys_reboot()
     #endif
 }
 
-// Appel système : nop ---------------------------------------------------------
+// Appel systeme : nop ---------------------------------------------------------
 void sys_nop()
 {
-    // Positionne le numéro de l'appel système dans r0 : numéro = 2
+    // Positionne le numero de l'appel systeme dans r0 : numero = 2
     SWI(SCI_NOP);
 }
 
@@ -38,16 +38,16 @@ void do_sys_nop()
     return;
 }
 
-// Appel système : settime -----------------------------------------------------
+// Appel systeme : settime -----------------------------------------------------
 void sys_settime(uint64_t date_ms)
 {
-    // On découpe date_ms pour le mettre dans le registre 1 et 2
+    // On decoupe date_ms pour le mettre dans le registre 1 et 2
     uint32_t mostSignificantBits = (uint32_t)(date_ms >> 32);
     uint32_t leastSignificantBits = (uint32_t)(date_ms);
     __asm("mov r2, %0" : : "r"(mostSignificantBits) : "r2", "r1", "r0");
     __asm("mov r1, %0" : : "r"(leastSignificantBits) : "r2", "r1", "r0");
 
-    // Positionne le numéro de l'appel système dans r0 : numéro = 3
+    // Positionne le numero de l'appel systeme dans r0 : numero = 3
     SWI(SCI_SETTIME);
 }
 
@@ -59,17 +59,17 @@ void do_sys_settime(pcb_s * context)
     uint32_t mostSignificantBits = context->registres[2];
     uint64_t date_ms = (uint64_t) mostSignificantBits << 32 | leastSignificantBits;
 
-    // On applique le paramètre
+    // On applique le parametre
     set_date_ms(date_ms);
 
     return;
 }
 
-// Appel système : gettime -----------------------------------------------------
+// Appel systeme : gettime -----------------------------------------------------
 uint64_t sys_gettime()
 {
-    // Positionne le numéro de l'appel système dans r0 : numéro = 4
-    __asm("mov r1, r0"); // On sauvegarde r0 dans r1 pour libérer l'espace pour mettre le numero de l'appel dans r0
+    // Positionne le numero de l'appel systeme dans r0 : numero = 4
+    __asm("mov r1, r0"); // On sauvegarde r0 dans r1 pour liberer l'espace pour mettre le numero de l'appel dans r0
     SWI(SCI_GETTIME);
 
     // Il faut reconstruire date_ms avec R0 (bits de poids fort)
@@ -84,10 +84,10 @@ uint64_t sys_gettime()
 
 void do_sys_gettime(pcb_s * context)
 {
-    // On récupère date_ms
+    // On recupere date_ms
     uint64_t date_ms = get_date_ms();
     
-    // stack_pointer est sur le numéro d'appel système donc R0
+    // stack_pointer est sur le numero d'appel systeme donc R0
     // On place alors dans le futur R0 les bits de poids fort
     context->registres[0] = (uint32_t)(date_ms >> 32);
     // Puis dans le futur R1 les bits de poids faible
@@ -106,7 +106,7 @@ void __attribute__((naked)) swi_handler()
     // Sauvegarde des registres et de LR
     STACK_REGS;
 
-    // Récupération du pointeur de pile après la sauvegarde
+    // Recuperation du pointeur de pile apres la sauvegarde
     pcb_s * context;
     __asm("mov %0, sp" : "=r"(context));
 
@@ -122,7 +122,7 @@ void __attribute__((naked)) swi_handler()
     // Sauvegarde de LR_SWI dans LR_SVC
     current_process->lr_svc = context->lr_user;
 
-    // Numéro d'appel système
+    // Numero d'appel systeme
     int syscallId = context->registres[0];
 
     switch (syscallId)

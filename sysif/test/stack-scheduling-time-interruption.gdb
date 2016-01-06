@@ -1,6 +1,6 @@
 # -*- mode: gdb-script -*-
 
-# TODO : Pourquoi si on passe la condition à 2 ou 3 itération, le test passe plus ... ??!!!
+# TODO : Pourquoi si on passe la condition a 2 ou 3 iteration, le test passe plus ... ??!!!
 
 set verbose off
 set confirm off

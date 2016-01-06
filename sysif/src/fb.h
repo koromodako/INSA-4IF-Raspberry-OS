@@ -27,7 +27,7 @@ uint32_t MailboxRead(uint32_t mailbox);
 #define data_sync_barrier() __asm__ __volatile__ ("mcr p15, 0, %[reg], c7, c10, 4"::[reg] "r" (0))
 
 
-// fonction pour écrire un message data dans une mailbox suivant un des mode de l'enum si dessus 
+// fonction pour ecrire un message data dans une mailbox suivant un des mode de l'enum si dessus 
 static inline void mmio_write(uint32_t reg, uint32_t data) {
     uint32_t *ptr = (uint32_t*)reg;
     __asm__ volatile("str %[data], [%[reg]]"

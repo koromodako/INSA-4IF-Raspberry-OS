@@ -5,7 +5,7 @@
 
 /* trace une ligne entre deux points
 ** On trace sur un x tant que l'erreur e est pas trop importante, 
-** sinon, on incrémente y.
+** sinon, on incremente y.
 // TODO FAIRE LES AUTRES CAS (ne marche que pour la diagonale haut gauche vers bas droite)
 */
 // void drawLine(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2){

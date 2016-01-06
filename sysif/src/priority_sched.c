@@ -16,27 +16,27 @@ typedef struct {
 } PriorityQueues;
 
 // Globales ----------------------------------------------------
-// Conteneur de files de priorité
+// Conteneur de files de priorite
 PriorityQueues pqueues;
 // Pointeur sur la cellule du processus courant
 SimpleCell * current_cell;
 // Compteur de tours
 int loop_counter;
 
-// Procédures privées ------------------------------------------
+// Procedures privees ------------------------------------------
 void priority_sched_clean(void)
 {
-	// On libère tant que le process suivant le process courant est terminé
+	// On libere tant que le process suivant le process courant est termine
 	while(current_cell->next != current_cell &&
 		  current_cell->next->pcb->state == PS_TERMINATED)
 	{
-		// Mémorisation de la cellule du processus à détruire
+		// Memorisation de la cellule du processus a detruire
 		SimpleCell * cell = current_cell->next;
 		// Modification du lien
 		current_cell->next = current_cell->next->next;
-		// On décrémente la taille de la file
+		// On decremente la taille de la file
 		pqueues.size[cell->pcb->priority]--;
-		// Libération de la mémoire allouée pour le processus (pile, pcb, cellule de liste)
+		// Liberation de la memoire allouee pour le processus (pile, pcb, cellule de liste)
 		FREE_PS(cell);	
 	}
 	// Test de terminaison du kernel
@@ -44,29 +44,29 @@ void priority_sched_clean(void)
 	for( p=0; p < PRIORITY_COUNT; ++p )
 	{	// Si on trouve une file non vide
 		if(pqueues.size[p] != 0)
-		{	// On interrompt la procédure de terminaison
+		{	// On interrompt la procedure de terminaison
 			return;
 		}
 	}
-	// Si on a pas été interrompu on demande la terminaison du noyau
+	// Si on a pas ete interrompu on demande la terminaison du noyau
 	terminate_kernel();
 }
 
 void next_priority()
 {
-	// On calcule la prochaine priorité
+	// On calcule la prochaine priorite
 	PROCESS_PRIORITY nextPriority = current_cell->pcb->priority+1;
 	if(nextPriority >= PRIORITY_COUNT)
 	{
 	    nextPriority = 0;
 	}
 	
-	// Modification dynamique de la priorité de kmain pour que la sentinelle est toujours la même priorité que la file qu'elle représente
+	// Modification dynamique de la priorite de kmain pour que la sentinelle est toujours la même priorite que la file qu'elle represente
 	// Rappel : 
-	//   Le pcb de kmain est pointé par toutes les sentinelles selon l'implémentation actuelle
+	//   Le pcb de kmain est pointe par toutes les sentinelles selon l'implementation actuelle
 	pqueues.cell[0].pcb->priority = nextPriority;
 	
-	// On passe à la priorité suivante
+	// On passe a la priorite suivante
 	current_cell = &(pqueues.cell[nextPriority]);
 	
 	// RAZ du compteur de tours
@@ -78,32 +78,32 @@ void next_process()
 	current_cell = current_cell->next;
 }
 
-// Procédures publiques ----------------------------------------
+// Procedures publiques ----------------------------------------
 
 /**
- *	Cette procédure initialise le scheduler simple
+ *	Cette procedure initialise le scheduler simple
  */
 pcb_s * priority_sched_init(pcb_s * kmain_pcb)
 {
 	int p;
 	for( p=0; p < PRIORITY_COUNT; ++p )
 	{
-		// On lie la sentinelle à elle même
+		// On lie la sentinelle a elle même
 		pqueues.cell[p].next = &(pqueues.cell[p]);
-		// On initialise le pcb de la sentinelle sur le processu point d'entrée du noyau
+		// On initialise le pcb de la sentinelle sur le processu point d'entree du noyau
 		pqueues.cell[p].pcb = kmain_pcb;
-		// On initialise la taille de la file à 0 même si toutes les sentinelles pointent vers le pcb de kmain
+		// On initialise la taille de la file a 0 même si toutes les sentinelles pointent vers le pcb de kmain
 		pqueues.size[p] = 0;
 	}
-	// On initialise la cellule courante sur le pcb du point d'entrée
+	// On initialise la cellule courante sur le pcb du point d'entree
 	current_cell = &(pqueues.cell[PP_KERNEL]);
 	// On initialise le compteur de tours
 	loop_counter = 0;
-	// On retourne le pcb de la cellule courante donc celle du point d'entrée
+	// On retourne le pcb de la cellule courante donc celle du point d'entree
 	return current_cell->pcb;
 }
 /**
- *	Cette procédure élit un nouveau processus et supprime les processus terminés
+ *	Cette procedure elit un nouveau processus et supprime les processus termines
  */
 pcb_s * priority_sched_elect(void)
 {
@@ -116,9 +116,9 @@ pcb_s * priority_sched_elect(void)
 		&&
 		pqueues.size[current_cell->pcb->priority] != 0 )
 	{
-		// On incrémente le compteur de tours
+		// On incremente le compteur de tours
 		loop_counter++;
-		// Si le compteur de tour dépasse la valeur (nb_de_priorité - priorité_courante)
+		// Si le compteur de tour depasse la valeur (nb_de_priorite - priorite_courante)
 		if( loop_counter >= 
 			(PRIORITY_COUNT - current_cell->pcb->priority) )
 		{
@@ -144,21 +144,21 @@ pcb_s * priority_sched_elect(void)
 	{	
 		next_process();
 	}
-	// On retourne le nouveau pcb élu
+	// On retourne le nouveau pcb elu
 	return current_cell->pcb;
 }
 /**
- *	Cette procédure enregistre un nouveau processus auprès du scheduler
+ *	Cette procedure enregistre un nouveau processus aupres du scheduler
  */
 void priority_sched_add(pcb_s * newProcess)
 {
 	// On alloue une nouvelle cellule
 	SimpleCell * cell = (SimpleCell*)kAlloc(sizeof(SimpleCell));
-	// On affecte le nouveau process à cette cellule
+	// On affecte le nouveau process a cette cellule
 	cell->pcb = newProcess;
-	// On ajoute la nouvelle cellule au début de la file de priorité correspondante
+	// On ajoute la nouvelle cellule au debut de la file de priorite correspondante
 	cell->next = pqueues.cell[newProcess->priority].next;
 	pqueues.cell[newProcess->priority].next = cell;
-	// On incrémente la taille de la file en question
+	// On incremente la taille de la file en question
 	pqueues.size[newProcess->priority]++;
 }

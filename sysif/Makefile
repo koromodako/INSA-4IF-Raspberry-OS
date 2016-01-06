@@ -3,7 +3,7 @@
 ################################################################################
 
 
-#### Règles par défaut #########################################################
+#### Regles par defaut #########################################################
 
 default: all
 
@@ -16,17 +16,17 @@ LIBDIR = lib
 SDCARDDIR = /media/antitoine/boot
 UMOUNTDEV = /dev/mmcblk0p1 /dev/mmcblk0p2
 
-# options à passer à la fois au compilateur C et à l'assembleur
+# options a passer a la fois au compilateur C et a l'assembleur
 COMMON_FLAGS=-mcpu=arm1176jzf-s
-# options à passer au compilateur
+# options a passer au compilateur
 CFLAGS_ALL=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
-# options à passer au compilateur C si QEMU
+# options a passer au compilateur C si QEMU
 CFLAGS_QEMU=$(CFLAGS_ALL) -DQEMU
-# options à passer au compilateur C
+# options a passer au compilateur C
 CFLAGS_STD=$(CFLAGS_ALL)
 
 
-#### Variables calculées #######################################################
+#### Variables calculees #######################################################
 
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
@@ -49,10 +49,10 @@ ifneq "$(shell md5sum ${KMAIN})" "$(shell test -f $(BUILDDIR)/kmain.md5 && cat $
   .PHONY: $(BUILDDIR)/kmain.o
 endif
 
-# nettoyage: effacer tous les fichiers générés
+# nettoyage: effacer tous les fichiers generes
 .PHONY:clean test launch
 
-#### Règles ####################################################################
+#### Regles ####################################################################
 
 all: kernel_for_qemu kernel_for_sdcard
 
@@ -82,7 +82,7 @@ $(BUILDDIR):
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c $(wildcard $(SOURCEDIR)/**.h) | $(BUILDDIR)
 	arm-none-eabi-gcc $(COMMON_FLAGS) ${CFLAGS} $< -c -o $@
 
-# compilation du point d'entrée 
+# compilation du point d'entree 
 $(BUILDDIR)/kmain.o: $(KMAIN) $(wildcard $(SOURCEDIR)/**.h)
 	arm-none-eabi-gcc $(COMMON_FLAGS) ${CFLAGS} -I $(SOURCEDIR) $< -c -o $@
 	@#"let's silently remember the checksum of the most recent kmain.c we compiled"
@@ -92,7 +92,7 @@ $(BUILDDIR)/kmain.o: $(KMAIN) $(wildcard $(SOURCEDIR)/**.h)
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.s | $(BUILDDIR)
 	arm-none-eabi-as -g $(COMMON_FLAGS) $< -c -o $@
 
-# édition de liens
+# edition de liens
 $(BUILDDIR)/kernel.elf: $(OBJECTS) $(BUILDDIR)/kmain.o
 	arm-none-eabi-ld $^ -o $@ -T $(SOURCEDIR)/sysif.ld -Map $(BUILDDIR)/mapfile.map -L$(LIBDIR) -lcsud
 
@@ -100,7 +100,7 @@ $(BUILDDIR)/kernel.elf: $(OBJECTS) $(BUILDDIR)/kmain.o
 $(BUILDDIR)/kernel.img: $(BUILDDIR)/kernel.elf
 	arm-none-eabi-objcopy $^ -O binary $@
 
-# désassemblage
+# desassemblage
 $(BUILDDIR)/kernel.list: $(BUILDDIR)/kernel.elf
 	arm-none-eabi-objdump -d -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
 

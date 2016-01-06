@@ -9,7 +9,7 @@ struct fl {
 	unsigned int	size;
 } *freelist = (struct fl *) 0;
 
-// Deux constantes définissant le haut du tas et la limite du tas
+// Deux constantes definissant le haut du tas et la limite du tas
 uint8_t* kernel_heap_top;
 uint8_t* kernel_heap_limit;
 uint8_t* kernel_heap_start;
@@ -30,16 +30,16 @@ int kheap_init_locker = 0;
  */
 unsigned int aligned_value(unsigned int addr, unsigned int pwr_of_2)
 {    
-	// On décale 1 de power_of_2 bits vers la gauche
+	// On decale 1 de power_of_2 bits vers la gauche
 	// ex : si addr = 0b01101 et pwr_of_2 = 4 
     unsigned int modulo = (1 << pwr_of_2);
     // ex : alors modulo = 0b000010000 
-    // On soustrait 1 à la valeur précédente
+    // On soustrait 1 a la valeur precedente
     unsigned int max_value_modulo = modulo - 1;
     // ex : alors max_value_modulo =  0b000001111
-    // On retourne l'adresse donnée en parametre a laquelle on 
+    // On retourne l'adresse donnee en parametre a laquelle on 
     // additionne la valeur du max du module et on applique un 
-    // filtre pour mettre à zéro les power_of_2 - 1 bits de 
+    // filtre pour mettre a zero les power_of_2 - 1 bits de 
     // poids faible 
     return (addr + max_value_modulo) & ~max_value_modulo;
     // ex :   0b000001101 
@@ -111,9 +111,9 @@ uint8_t* kAlloc_aligned(unsigned int size, unsigned int pwr_of_2)
 
 /**
  *	Cette fonction alloue un bloc de size octets et 
- *	retourne l'adresse de départ de ce bloc 
+ *	retourne l'adresse de depart de ce bloc 
  *	@param size
- *		Taille du bloc de mémoire allouée en octet
+ *		Taille du bloc de memoire allouee en octet
  */
 uint8_t* kAlloc(unsigned int size)
 {
@@ -151,12 +151,12 @@ uint8_t* kAlloc(unsigned int size)
 }
 
 /**
- *	Cette fonction libère un bloc de size octets à partir de 
+ *	Cette fonction libere un bloc de size octets a partir de 
  *  l'adresse ptr
  *	@param ptr
- *		Adresse de départ du bloc à libérer
+ *		Adresse de depart du bloc a liberer
  *	@param size
- *		Taille du bloc à libérer en octets
+ *		Taille du bloc a liberer en octets
  */
 void kFree(uint8_t* ptr, unsigned int size)
 {
@@ -168,7 +168,7 @@ void kFree(uint8_t* ptr, unsigned int size)
 }
 
 /**
- * 	Cette fonction initialise les adresses de référence du tas
+ * 	Cette fonction initialise les adresses de reference du tas
  */
 void kheap_init()
 {

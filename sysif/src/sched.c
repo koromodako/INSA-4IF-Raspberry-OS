@@ -10,7 +10,7 @@
 
 // Globales -----------------------------------------------------
 /* 
-    Varaiable de mémorisation de la politique d'ordonnancement choisie
+    Varaiable de memorisation de la politique d'ordonnancement choisie
 */
 SCHEDULING_POLICY sched_policy = 0x00;
 /*
@@ -31,7 +31,7 @@ void sched_init(SCHEDULING_POLICY schedPolicy)
         log_cr();
     }
 
-    // Initialisation de la mémoire
+    // Initialisation de la memoire
     kheap_init();
     log_nfo("Kernel heap initialized.");
     log_cr();
@@ -45,7 +45,7 @@ void sched_init(SCHEDULING_POLICY schedPolicy)
     // Initialisation de la politique d'ordonnancement
     sched_policy = schedPolicy;
 
-    // Initialisation du scheduler associé
+    // Initialisation du scheduler associe
     switch(sched_policy) {
         case SP_SIMPLE: 
             log_nfo("Scheduling policy : simple.");
@@ -65,43 +65,45 @@ void sched_init(SCHEDULING_POLICY schedPolicy)
 pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
 {
     if(priority < 0x0 || priority > PRIORITY_COUNT-1)
-    {   // Valeur de priorité illégale
+    {   // Valeur de priorite illegale
         terminate_kernel();
     }
 
-    /*
-        La ligne suivante alloue la mémoire nécessaire au stockage du pcb du
-        processus en cours de création. Il est difficile d'envisager l'allocation 
-        de cette zone de mémoire seulement dans la table de page du processus.
-        Nous choisissons donc de conserver cette section de mémoire dans l'espace kernel. 
-     */
+    // le PCB est stocke dans l'espace memoire reserve au noyau donc on garde kAlloc ici
     pcb_s * pcb = (pcb_s *) kAlloc(sizeof(pcb_s)); 
 
 
-    // Initialisation de la table de page du processus
+    // initialisation de la table de page du processus
     pcb->page_table = (uint32_t*)init_ps_translation_table();
 
     pcb->lr_user = (func_t *) &start_current_process;
     pcb->lr_svc = (func_t *) &start_current_process;
 
-    // Initialisation des champs paramétrables
+    // initialisation des champs parametrables
     pcb->entry = entry;
     pcb->priority = priority;
     
+#ifdef USE_VMEM
+    // On alloue dans la zone mémoire kernel avec kAlloc
     pcb->sp_start = (uint32_t *) vmem_alloc_in_userland(pcb, SIZE_STACK_PROCESS);
-    //pcb->sp_start = (uint32_t*) kAlloc(SIZE_STACK_PROCESS);
+#else
+    // On alloue dans la zone mémoire kernel avec kAlloc
+    pcb->sp_start = (uint32_t*) kAlloc(SIZE_STACK_PROCESS);
+#endif
+    // on replace le pointeur de pile au depart de cette derniere
+    pcb->sp = (uint32_t*)((uint32_t)(pcb->sp_start) + SIZE_STACK_PROCESS + 1);
+    // DEBUG --------------------------------------- DEBUG
+    uint32_t addr = vmem_translate_ps((uint32_t)(pcb->sp), pcb); addr=addr;
+    // DEBUG --------------------------------------- DEBUG
 
-    // On replace le pointeur de pile au départ de cette dernière
-    pcb->sp = pcb->sp_start + SIZE_STACK_PROCESS + 1;
-
-    // Initialisation du champ SPSR
+    // initialisation du champ SPSR
     pcb->cpsr = 0b10000; // Valeur du SPSR en mode USER
 
     log_nfo("New process created, entry=");
     log_int((int)entry);
     log_cr();
 
-    // Ajout de la pcb aux structures de scheduling
+    // ajout de la pcb aux structures de scheduling
     switch(sched_policy) {
         case SP_SIMPLE: 
             simple_sched_add(pcb);
@@ -119,14 +121,14 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
 
 void elect(void)
 {
-    // On change l'état du processus courant sauf s'il termine
+    // On change l'etat du processus courant sauf s'il termine
     if(current_process->state != PS_TERMINATED)
     {
         current_process->state = PS_READY;
     }
 
-    // On supprime tous les processus terminés devant le processus courant
-    // Verification de terminaison de kernel puis election si nécessaire
+    // On supprime tous les processus termines devant le processus courant
+    // Verification de terminaison de kernel puis election si necessaire
     switch(sched_policy) {
         case SP_SIMPLE:
             current_process = simple_sched_elect();
@@ -145,13 +147,13 @@ void start_current_process(void)
     sys_exit(0);
 }
 
-// Appel système : yieldto -----------------------------------------------------
+// Appel systeme : yieldto -----------------------------------------------------
 void sys_yieldto(pcb_s* dest)
 {
     // On place dest dans le registre R1
     __asm("mov r1, r0");
 
-    // Positionne le numéro de l'appel système dans r0 : numéro = 5
+    // Positionne le numero de l'appel systeme dans r0 : numero = 5
     SWI(SCI_YIELDTO);
 }
 
@@ -170,10 +172,10 @@ void do_sys_yieldto(pcb_s * context)
     current_process = dest;
 }
 
-// Appel système : yield -----------------------------------------------------
+// Appel systeme : yield -----------------------------------------------------
 void sys_yield()
 {
-    // Positionne le numéro de l'appel système dans r0 : numéro = 6
+    // Positionne le numero de l'appel systeme dans r0 : numero = 6
     SWI(SCI_YIELD);
 }
 
@@ -194,13 +196,13 @@ void do_sys_yield(pcb_s * context)
     }
 }
 
-// Appel système : exit --------------------------------------------------------
+// Appel systeme : exit --------------------------------------------------------
 void sys_exit(int status)
 {
     // On place status dans le registre R1
     __asm("mov r1, r0");
 
-    // Positionne le numéro de l'appel système dans r0 : numéro = 7
+    // Positionne le numero de l'appel systeme dans r0 : numero = 7
     SWI(SCI_EXIT);
 }
 
@@ -225,7 +227,7 @@ void __attribute__((naked)) irq_handler(void)
     // Sauvegarde des registres et de LR
     STACK_REGS;
 
-    // Récupération du pointeur de pile après la sauvegarde
+    // Recuperation du pointeur de pile apres la sauvegarde
     pcb_s * context;
     __asm("mov %0, sp" : "=r"(context));
 
@@ -258,7 +260,7 @@ void __attribute__((naked)) irq_handler(void)
     // On restaure SPSR
     __asm("msr spsr, %0" : : "r"(current_process->cpsr));
 
-    // Remise à zéro du compteur
+    // Remise a zero du compteur
     set_next_tick_default();
     ENABLE_TIMER_IRQ();
 

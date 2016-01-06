@@ -15,14 +15,14 @@ uint64_t divide(uint64_t x, uint64_t y);
 // Division sur un int 32 bits  ------------------------------------------------
 uint32_t divide32(uint32_t x, uint32_t y);
 
-// Division sur un int 32 bits et retourne l'arrondi supérieur ------------------------------------------------
+// Division sur un int 32 bits et retourne l'arrondi superieur ------------------------------------------------
 uint32_t divide32ceil(uint32_t x, uint32_t y);
 
 
 // Modulo sur un int 32 bits  --------------------------------------------------
 uint32_t mod32(uint32_t x, uint32_t y);
 
-// Retourne l'arrondie supérieur d'une division --------------------------------
+// Retourne l'arrondie superieur d'une division --------------------------------
 uint32_t getUpperBoundFromDivide32(uint32_t number, uint32_t diviser);
 
 #endif //MATH_H
