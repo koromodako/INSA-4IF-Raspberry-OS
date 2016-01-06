@@ -8,13 +8,14 @@
 #include "font.h"
 #include "kheap.h"
 #include "usb.h"
-#include "keyboard.h"
 #include "math.h"
-#include "drivers/usb/csud/include/device/hid/keyboard.h"
+#include "keyboard.h"
 
 static FontTable * font;
 
 void display_process_info() {
+
+    // Affichage text haut gauche
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
     drawLetters(cursor, font, "Hello World !\n");
     char * resolutionX = (char *) kAlloc(sizeof (char) * 12);
@@ -27,53 +28,29 @@ void display_process_info() {
     drawLetters(cursor, font, resolutionY);
     drawLetters(cursor, font, "\n");
 
+    // Affichage séparateurs
     drawLine(10, 70, getResolutionX() - 10, 70);
     drawLine(divide32(getResolutionX(), 2), 80, divide32(getResolutionX(), 2), getResolutionY() - 10);
-}
 
-void display_process_info_keyboard() {
-    uint32_t x = divide32(getResolutionX(), 2) + 10;
-    FontCursor * cursorNbClavier = initCursor(x, 10, getResolutionX() - 10, 60);
-
+    // Affichage infos clavier
+    FontCursor * cursorNbClavier = initCursor(divide32(getResolutionX(), 2) + 10, 10, getResolutionX() - 10, 60);
     char * nbClavierString = (char *) kAlloc(sizeof (char) * 14);
-    char * nbTouchesString = (char *) kAlloc(sizeof (char) * 14);
-
     uint32_t nbClavier = getNbKeyboard();
-    uint32_t nbTouches = getKeyDownCount();
-
-    uint32_t firstTime = 1;
-
-    while (1) {
-        uint32_t sleep = 0;
-
-        if (firstTime == 1 || nbClavier != getNbKeyboard() || nbTouches != getKeyDownCount()) {
-            firstTime = 0;
-            draw(x, 10, getResolutionX() - 10, 60, 0, 0, 0);
-            cursorNbClavier->cursor_x = x;
-            cursorNbClavier->cursor_y = 10;
-            nbClavier = getNbKeyboard();
-            itoa(nbClavier, nbClavierString);
-            drawLetters(cursorNbClavier, font, "Nb de claviers : ");
-            drawLetters(cursorNbClavier, font, nbClavierString);
-            drawLetters(cursorNbClavier, font, "\n");
-            itoa(nbTouches, nbTouchesString);
-            drawLetters(cursorNbClavier, font, "Nb de touches enfoncees : ");
-            drawLetters(cursorNbClavier, font, nbTouchesString);
-        }
-
-        for (sleep = 0; sleep < 100000; sleep++);
-    };
+    itoa(nbClavier, nbClavierString);
+    drawLetters(cursorNbClavier, font, "Nb de claviers : ");
+    drawLetters(cursorNbClavier, font, nbClavierString);
+    drawLetters(cursorNbClavier, font, "\n");
 
 }
 
 void display_process_text_left() {
     FontCursor * cursorLeft = initCursor(10, 90, divide32(getResolutionX(), 2) - 10, getResolutionY() - 10);
     for (;;) {
-        char c = keyboardCall();
-        //if (c != 'a') {
+        KeyboardUpdate();
+        char c = KeyboardGetChar();
+        if (c != 0) {
             drawLetter(cursorLeft, font, c);
-            led_switch();
-        //}
+        }
     }
 }
 
@@ -108,9 +85,8 @@ void kmain(void) {
 
     // Creation des processus
     create_process((func_t*) & display_process_info, PP_HIGH);
-    create_process((func_t*) & display_process_info_keyboard, PP_HIGH);
-    create_process((func_t*) & display_process_text_left, PP_MEDIUM);
-    create_process((func_t*) & display_process_text_right, PP_MEDIUM);
+    create_process((func_t*) & display_process_text_left, PP_ULTRA_LOW);
+    create_process((func_t*) & display_process_text_right, PP_ULTRA_LOW);
 
     // Initialisation du timer matériel pour les IRQ
     timer_init();
@@ -120,7 +96,6 @@ void kmain(void) {
     SWITCH_TO_USER_MODE;
 
     font = initFont();
-    KeyboardLedsOn();
 
     while (1) {
         sys_yield();

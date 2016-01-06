@@ -11,19 +11,18 @@
 
 // Fonctions ------------------------------
 
-char keyboardCall();
+u32 KeyboardAddress;
 
-/**
- *	Cette fonction met en mémoire les 6 dernières touches appuyées de chaque clavier
- */
-void KeyboardsUpdate(void);
-/**
- *	Cette fonction compte le nombre d'occurence de la touche key dans le buffer
- */
-int KeyWasDown(u16 key);
-/**
- * Cette fonction retourne le caractere correspondant à la derniere touche enfoncée
- */
+u16* KeyboardOldDown;
+
+char* KeysNormal;
+
+char* KeysShift;
+
+void KeyboardUpdate();
+
+bool KeyWasDown(u16 scanCode);
+
 char KeyboardGetChar();
 
 void KeyboardLedsOn();
@@ -31,7 +30,5 @@ void KeyboardLedsOn();
 void KeyboardLedsOff();
 
 u32 getNbKeyboard();
-
-u32 getKeyDownCount();
 
 #endif //KEYBOARD_H

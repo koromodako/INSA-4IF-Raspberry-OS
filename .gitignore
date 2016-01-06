@@ -49,3 +49,6 @@ sysif/build/
 sysif/.cproject
 sysif/.project
 sysif/.settings
+.cproject
+.project
+.settings
