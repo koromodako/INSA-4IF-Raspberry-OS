@@ -37,6 +37,11 @@ uint32_t divide32(uint32_t x, uint32_t y) {
     return quotient;
 }
 
+uint64_t mod(uint64_t x, uint64_t y) {
+    return x - (y * divide(x,y));
+}
+
+
 uint32_t mod32(uint32_t x, uint32_t y) {
     return x - (y * divide32(x,y));
 }

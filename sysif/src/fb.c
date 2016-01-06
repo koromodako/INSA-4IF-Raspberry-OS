@@ -211,35 +211,6 @@ void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t
 }
 
 /*
- * Dessine sur tous les pixels des couleurs différentes
- */
-/*
-void draw() {
-    uint8_t red = 0, green = 0, blue = 0;
-    uint32_t x = 0, y = 0;
-    for (x = 0; x < fb_x; x++) {
-        for (y = 0; y < fb_y; y++) {
-            if (blue > 254) {
-                if (green > 254) {
-                    if (red > 254) {
-                        red = 0;
-                        green = 0;
-                        blue = 0;
-                    } else {
-                        red++;
-                    }
-                } else {
-                    green++;
-                }
-            } else
-                blue++;
-            put_pixel_RGB24(x, y, red, green, blue);
-        }
-    }
-}
-*/
-
-/*
  * Rempli l'écran de rouge
  */
 void drawRed() {
@@ -252,7 +223,7 @@ void drawRed() {
 }
 
 /*
- * Rempli l'écran de blanc
+ * Rempli l'écran de bleu
  */
 void drawBlue() {
     uint32_t x = 0, y = 0;
