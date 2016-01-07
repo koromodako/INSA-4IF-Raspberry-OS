@@ -8,12 +8,24 @@
 #include "font.h"
 #include "kheap.h"
 #include "usb.h"
-#include "math.h"
 #include "keyboard.h"
+#include "math.h"
+#include "img.h"
+#include "syscall.h"
+#include "drivers/usb/csud/include/device/hid/keyboard.h"
 
 static FontTable * font;
 
-void display_process_info() {
+extern unsigned char _binary_img_lena_ppm_start;
+extern unsigned char _binary_img_lena_ppm_end;
+extern unsigned char _binary_img_lena_pgm_start;
+extern unsigned char _binary_img_lena_pgm_end;
+extern unsigned char _binary_img_landscape_ppm_start;
+extern unsigned char _binary_img_landscape_ppm_end;
+extern unsigned char _binary_img_landscape_pgm_start;
+extern unsigned char _binary_img_landscape_pgm_end;
+
+void display_process_top_info() {
 
     // Affichage text haut gauche
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
@@ -29,43 +41,65 @@ void display_process_info() {
     drawLetters(cursor, font, "\n");
 
     // Affichage séparateurs
-    drawLine(10, 70, getResolutionX() - 10, 70);
-    drawLine(divide32(getResolutionX(), 2), 80, divide32(getResolutionX(), 2), getResolutionY() - 10);
+    drawLine(10, 70, getResolutionX() - 10, 70); // Horizontal : Entre les infos du haut et le reste
+    drawLine(divide32(getResolutionX(), 2), 10, divide32(getResolutionX(), 2), 60); // Vertical : Entre les infos du haut (milieu)
+    drawLine(divide32(getResolutionX(), 2), 80, divide32(getResolutionX(), 2), getResolutionY() - 10); // Vertical : Milieu du bas
+    drawLine(divide32(getResolutionX(), 2) + 10, divide32(getResolutionY(), 2), getResolutionX() - 10, divide32(getResolutionY(), 2)); // Horizontal : Milieu de la droite
 
     // Affichage infos clavier
-    FontCursor * cursorNbClavier = initCursor(divide32(getResolutionX(), 2) + 10, 10, getResolutionX() - 10, 60);
+    FontCursor * cursorClavierTime = initCursor(divide32(getResolutionX(), 2) + 10, 10, getResolutionX() - 10, 60);
     char * nbClavierString = (char *) kAlloc(sizeof (char) * 14);
     uint32_t nbClavier = getNbKeyboard();
     itoa(nbClavier, nbClavierString);
-    drawLetters(cursorNbClavier, font, "Nb de claviers : ");
-    drawLetters(cursorNbClavier, font, nbClavierString);
-    drawLetters(cursorNbClavier, font, "\n");
-
+    drawLetters(cursorClavierTime, font, "Nb de claviers : ");
+    drawLetters(cursorClavierTime, font, nbClavierString);
+    drawLetters(cursorClavierTime, font, "\n");
 }
 
-void display_process_text_left() {
-    FontCursor * cursorLeft = initCursor(10, 90, divide32(getResolutionX(), 2) - 10, getResolutionY() - 10);
-    for (;;) {
-        KeyboardUpdate();
-        char c = KeyboardGetChar();
-        if (c != 0) {
-            drawLetter(cursorLeft, font, c);
+void display_process_right_top_text() {
+    FontCursor * cursorRight = initCursor(divide32(getResolutionX(), 2) + 10, 90, getResolutionX() - 10, divide32(getResolutionY(), 2) - 10);
+
+    uint32_t letter = 33;
+    while (1) {
+         drawLetter(cursorRight, font, (char) letter);
+         letter++;
+         if (letter > 126) {
+             letter = 33;
+         }
+         uint32_t sleep = 0;
+         for (sleep = 0; sleep < 100000; sleep++);
+    }
+}
+
+void display_process_right_bottom_keyboard() {
+    FontCursor * cursorLeft = initCursor(divide32(getResolutionX(), 2) + 10, divide32(getResolutionY(), 2) + 10, getResolutionX() - 10, getResolutionY() - 10);
+    drawLetters(cursorLeft, font, "Raspberry-OS:~$ ");
+    if (getNbKeyboard() > 0) {
+        for (;;) {
+            KeyboardUpdate();
+            char c = KeyboardGetChar();
+            if (c != 0) {
+                drawLetter(cursorLeft, font, c);
+            }
         }
     }
 }
 
-void display_process_text_right() {
-    FontCursor * cursorRight = initCursor(divide32(getResolutionX(), 2) + 10, 90, getResolutionX() - 10, getResolutionY() - 10);
-    uint32_t letter = 33;
-    while (1) {
-        drawLetter(cursorRight, font, (char) letter);
-        letter++;
-        if (letter > 126) {
-            letter = 33;
-        }
+void display_process_left_image() {
+    Image img[] = {
+            loadImage(PPM, &_binary_img_lena_pgm_start, &_binary_img_lena_pgm_end),
+            loadImage(PPM, &_binary_img_lena_ppm_start, &_binary_img_lena_ppm_end),
+            loadImage(PPM, &_binary_img_landscape_pgm_start, &_binary_img_landscape_pgm_end),
+            loadImage(PPM, &_binary_img_landscape_ppm_start, &_binary_img_landscape_ppm_end)
+    };
 
-        uint32_t sleep = 0;
-        for (sleep = 0; sleep < 100000; sleep++);
+    for (;;) {
+        for (uint8_t i=0; i<4; ++i) {
+            draw(10, 90, divide32(getResolutionX(), 2) - 5, getResolutionY() - 5, 0, 0, 0);
+            displayImage(img[i], 10, 90, divide32(getResolutionX(), 2) - 10, getResolutionY() - 10);
+            uint32_t sleep = 0;
+            for (sleep = 0; sleep < 1000000; sleep++);
+        }
     }
 }
 
@@ -75,7 +109,7 @@ void kmain(void) {
     usb_init();
 
     // Initialisation du scheduler
-    sched_init(SP_SIMPLE);
+    sched_init(SP_PRIORITY);
 
     // Initialisation des LEDs ...
     hw_init();
@@ -84,9 +118,10 @@ void kmain(void) {
     FramebufferInitialize();
 
     // Creation des processus
-    create_process((func_t*) & display_process_info, PP_HIGH);
-    create_process((func_t*) & display_process_text_left, PP_ULTRA_LOW);
-    create_process((func_t*) & display_process_text_right, PP_ULTRA_LOW);
+    create_process((func_t*) & display_process_top_info, PP_HIGH);
+    create_process((func_t*) & display_process_left_image, PP_HIGH);
+    create_process((func_t*) & display_process_right_top_text, PP_LOW);
+    create_process((func_t*) & display_process_right_bottom_keyboard, PP_MEDIUM);
 
     // Initialisation du timer matériel pour les IRQ
     timer_init();

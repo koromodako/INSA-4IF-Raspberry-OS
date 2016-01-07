@@ -11,6 +11,7 @@ default: all
 
 BUILDDIR = build
 SOURCEDIR = src
+IMGDIR = img
 TOOLSDIR = tools
 LIBDIR = lib
 SDCARDDIR = /media/antitoine/boot
@@ -31,7 +32,9 @@ CFLAGS_STD=$(CFLAGS_ALL)
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
 # Object files (excluding kmain)
-OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs])))))
+OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs]))))) \
+		$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(notdir $(wildcard $(IMGDIR)/**.pgm)))) \
+		$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(notdir $(wildcard $(IMGDIR)/**.ppm))))
 
 # check whether kmain does exists. typically this would get triggered
 # by a command like "make KMAIN=" (i.e. with no value for KMAIN)
@@ -67,7 +70,7 @@ kernel_for_qemu: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.list
 kernel_for_sdcard: CFLAGS=$(CFLAGS_STD) 
 kernel_for_sdcard: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.img 
 
-put_img_in_sdcard : kernel_for_sdcard
+put_img_in_sdcard: kernel_for_sdcard
 	cp $(BUILDDIR)/kernel.img $(SDCARDDIR)/kernel.img && umount $(UMOUNTDEV)
 
 launch: kernel_for_qemu
@@ -77,6 +80,13 @@ launch: kernel_for_qemu
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
+
+# compilation des images pgm et ppm vers pgm.o et ppm.o
+$(BUILDDIR)/%.ppm.o: $(IMGDIR)/%.ppm
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $@
+
+$(BUILDDIR)/%.pgm.o: $(IMGDIR)/%.pgm
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $@
 
 # compilation C vers ELF
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c $(wildcard $(SOURCEDIR)/**.h) | $(BUILDDIR)
@@ -102,7 +112,7 @@ $(BUILDDIR)/kernel.img: $(BUILDDIR)/kernel.elf
 
 # désassemblage
 $(BUILDDIR)/kernel.list: $(BUILDDIR)/kernel.elf
-	arm-none-eabi-objdump -d -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
+	arm-none-eabi-objdump -d -t -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
 
 
 #### Tests #####################################################################
