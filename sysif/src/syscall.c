@@ -151,12 +151,14 @@ void __attribute__((naked)) swi_handler()
     // On restaure SPSR
     __asm("msr spsr, %0" : : "r"(current_process->cpsr));
 
+#ifdef USE_VMEM
     if(syscallId == SCI_YIELDTO || syscallId == SCI_YIELD) 
     {   // Invalidate TLB
         __asm("mcr p15, 0, r0, c8, c6, 0");
         // Configure MMU with new page table
         configure_mmu_C((unsigned int) current_process->page_table);
     }
+#endif
 
     // Remise en fonction de l'IRQ
     ENABLE_IRQ();
