@@ -3,18 +3,19 @@
 #include "hw.h"
 #include "asm_tools.h"
 #include "util.h"
+#include "math.h"
 
 /* ***************************
  * ********** Timer **********
  * ***************************/
 uint64_t
 get_date_ms() {
-#ifdef RPI
+#ifdef QEMU
+    uint64_t date = ((uint64_t) 0x43 << 32) | 0x42;
+#else
     uint32_t date_lowbits = Get32(CLO);
     uint64_t date_highbits = (uint64_t) Get32(CHI);
     uint64_t date = divide(((date_highbits << 32) | date_lowbits), SYS_TIMER_CLOCK_div_1000);
-#else
-    uint64_t date = ((uint64_t) 0x43 << 32) | 0x42;
 #endif
 
     return date;

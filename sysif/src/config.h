@@ -5,10 +5,6 @@
 	-------------------------- Parametres ---------------------------- 
 */
 /* 
-	Commentez la ligne suivante si le code compile est emule par QEMU
-*/ 
-//#define RPI
-/* 
 	Commentez la ligne suivante si vous ne voulez pas utiliser la memoire virtuelle
 */ 
 #define USE_VMEM

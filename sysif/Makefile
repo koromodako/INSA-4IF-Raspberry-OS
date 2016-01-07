@@ -11,6 +11,7 @@ default: all
 
 BUILDDIR = build
 SOURCEDIR = src
+IMGDIR = img
 TOOLSDIR = tools
 LIBDIR = lib
 SDCARDDIR = /media/antitoine/boot
@@ -19,7 +20,7 @@ UMOUNTDEV = /dev/mmcblk0p1 /dev/mmcblk0p2
 # options a passer a la fois au compilateur C et a l'assembleur
 COMMON_FLAGS=-mcpu=arm1176jzf-s
 # options a passer au compilateur
-CFLAGS_ALL=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option
+CFLAGS_ALL=-Wall -Werror -nostdlib -nostartfiles -ffreestanding -std=c99 -g -fomit-frame-pointer -nostartfiles -O0 -fdiagnostics-show-option -fshort-wchar
 # options a passer au compilateur C si QEMU
 CFLAGS_QEMU=$(CFLAGS_ALL) -DQEMU
 # options a passer au compilateur C
@@ -31,7 +32,9 @@ CFLAGS_STD=$(CFLAGS_ALL)
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
 # Object files (excluding kmain)
-OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs])))))
+OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs]))))) \
+		$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(notdir $(wildcard $(IMGDIR)/**.pgm)))) \
+		$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(notdir $(wildcard $(IMGDIR)/**.ppm))))
 
 # check whether kmain does exists. typically this would get triggered
 # by a command like "make KMAIN=" (i.e. with no value for KMAIN)
@@ -67,8 +70,8 @@ kernel_for_qemu: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.list
 kernel_for_sdcard: CFLAGS=$(CFLAGS_STD) 
 kernel_for_sdcard: $(BUILDDIR)/kernel.elf $(BUILDDIR)/kernel.img 
 
-put_img_in_sdcard : kernel_for_sdcard
-	cp $(BUILDDIR)/kernel.img $(SDCARDDIR)/kernel.img && umount $(UMOUNT)
+put_img_in_sdcard: kernel_for_sdcard
+	cp $(BUILDDIR)/kernel.img $(SDCARDDIR)/kernel.img && umount $(UMOUNTDEV)
 
 launch: kernel_for_qemu
 	make -C $(TOOLSDIR)/
@@ -77,6 +80,13 @@ launch: kernel_for_qemu
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
+
+# compilation des images pgm et ppm vers pgm.o et ppm.o
+$(BUILDDIR)/%.ppm.o: $(IMGDIR)/%.ppm
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $@
+
+$(BUILDDIR)/%.pgm.o: $(IMGDIR)/%.pgm
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $@
 
 # compilation C vers ELF
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c $(wildcard $(SOURCEDIR)/**.h) | $(BUILDDIR)
@@ -94,7 +104,7 @@ $(BUILDDIR)/%.o: $(SOURCEDIR)/%.s | $(BUILDDIR)
 
 # edition de liens
 $(BUILDDIR)/kernel.elf: $(OBJECTS) $(BUILDDIR)/kmain.o
-	arm-none-eabi-ld $^ -o $@ -T $(SOURCEDIR)/sysif.ld -Map $(BUILDDIR)/mapfile.map -L$(LIBDIR) -lcsud
+	arm-none-eabi-ld --no-undefined $^ -o $@ -T $(SOURCEDIR)/sysif.ld -Map $(BUILDDIR)/mapfile.map -L$(LIBDIR) -lcsud
 
 # conversion de l'image pour transfert sur carte SD
 $(BUILDDIR)/kernel.img: $(BUILDDIR)/kernel.elf
@@ -102,7 +112,7 @@ $(BUILDDIR)/kernel.img: $(BUILDDIR)/kernel.elf
 
 # desassemblage
 $(BUILDDIR)/kernel.list: $(BUILDDIR)/kernel.elf
-	arm-none-eabi-objdump -d -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
+	arm-none-eabi-objdump -d -t -j .text -j .bss -j .stack -j .kernel_heap -j .user_stacks $< > $@
 
 
 #### Tests #####################################################################

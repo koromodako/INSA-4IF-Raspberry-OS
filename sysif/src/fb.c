@@ -199,45 +199,16 @@ void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t
         offset = (y * pitch) + (x * 3);
         ptr = (uint32_t*) (fb_address + offset);
 #ifdef QEMU
+        *((uint8_t*) ptr) = red;
+        *((uint8_t*) (ptr + 2)) = blue;
+#else
         *((uint8_t*) ptr) = blue;
         *((uint8_t*) (ptr + 2)) = red;
-#else
-        *((uint8_t*) ptr) = red;
-        *((uint8_t*) (ptr + 2)) = blue;       
 #endif
         *((uint8_t*) (ptr + 1)) = green;
 
     }
 }
-
-/*
- * Dessine sur tous les pixels des couleurs differentes
- */
-/*
-void draw() {
-    uint8_t red = 0, green = 0, blue = 0;
-    uint32_t x = 0, y = 0;
-    for (x = 0; x < fb_x; x++) {
-        for (y = 0; y < fb_y; y++) {
-            if (blue > 254) {
-                if (green > 254) {
-                    if (red > 254) {
-                        red = 0;
-                        green = 0;
-                        blue = 0;
-                    } else {
-                        red++;
-                    }
-                } else {
-                    green++;
-                }
-            } else
-                blue++;
-            put_pixel_RGB24(x, y, red, green, blue);
-        }
-    }
-}
-*/
 
 /*
  * Rempli l'ecran de rouge

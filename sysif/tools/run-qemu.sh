@@ -1,6 +1,6 @@
 #!/bin/sh
 
-NOGRAPHIC=true
+NOGRAPHIC=false
 
 for i in "$@"
 do
