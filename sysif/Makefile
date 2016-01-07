@@ -11,6 +11,7 @@ default: all
 
 BUILDDIR = build
 SOURCEDIR = src
+IMGDIR = img
 TOOLSDIR = tools
 LIBDIR = lib
 SDCARDDIR = /media/antitoine/boot
@@ -31,7 +32,9 @@ CFLAGS_STD=$(CFLAGS_ALL)
 # non-default usage: "make KMAIN=test/my-kmain.c" 
 KMAIN ?= ./kmain.c
 # Object files (excluding kmain)
-OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs]))))) $(BUILDDIR)/image.o
+OBJECTS=$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(basename $(notdir $(wildcard $(SOURCEDIR)/**.[cs]))))) \
+		$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(notdir $(wildcard $(IMGDIR)/**.pgm)))) \
+		$(addsuffix .o,  $(addprefix $(BUILDDIR)/, $(notdir $(wildcard $(IMGDIR)/**.ppm))))
 
 # check whether kmain does exists. typically this would get triggered
 # by a command like "make KMAIN=" (i.e. with no value for KMAIN)
@@ -73,13 +76,17 @@ put_img_in_sdcard: kernel_for_sdcard
 launch: kernel_for_qemu
 	make -C $(TOOLSDIR)/
 
-$(BUILDDIR)/image.o: image.ppm
-	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $@
-
 ## Build
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
+
+# compilation des images pgm et ppm vers pgm.o et ppm.o
+$(BUILDDIR)/%.ppm.o: $(IMGDIR)/%.ppm
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $@
+
+$(BUILDDIR)/%.pgm.o: $(IMGDIR)/%.pgm
+	arm-none-eabi-objcopy -I binary -O elf32-littlearm -B arm $< $@
 
 # compilation C vers ELF
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c $(wildcard $(SOURCEDIR)/**.h) | $(BUILDDIR)

@@ -16,8 +16,14 @@
 
 static FontTable * font;
 
-extern unsigned char _binary_image_ppm_start;
-extern unsigned char _binary_image_ppm_end;
+extern unsigned char _binary_img_lena_ppm_start;
+extern unsigned char _binary_img_lena_ppm_end;
+extern unsigned char _binary_img_lena_pgm_start;
+extern unsigned char _binary_img_lena_pgm_end;
+extern unsigned char _binary_img_landscape_ppm_start;
+extern unsigned char _binary_img_landscape_ppm_end;
+extern unsigned char _binary_img_landscape_pgm_start;
+extern unsigned char _binary_img_landscape_pgm_end;
 
 void display_process_top_info() {
 
@@ -80,29 +86,21 @@ void display_process_right_bottom_keyboard() {
 }
 
 void display_process_left_image() {
-    FontCursor * cursorImage = initCursor(10, 90, divide32(getResolutionX(), 2) - 10, getResolutionY() - 10);
-    drawLetters(cursorImage, font, "-- Images --");
+    Image img[] = {
+            loadImage(PPM, &_binary_img_lena_pgm_start, &_binary_img_lena_pgm_end),
+            loadImage(PPM, &_binary_img_lena_ppm_start, &_binary_img_lena_ppm_end),
+            loadImage(PPM, &_binary_img_landscape_pgm_start, &_binary_img_landscape_pgm_end),
+            loadImage(PPM, &_binary_img_landscape_ppm_start, &_binary_img_landscape_ppm_end)
+    };
 
-    Image img = loadImage(PPM, &_binary_image_ppm_start, &_binary_image_ppm_end);
-
-    drawLetters(cursorImage, font, "\nWidth : ");
-    char * width_string = (char *) kAlloc(sizeof (char) * 14);
-    itoa(img.width, width_string);
-    drawLetters(cursorImage, font, width_string);
-
-    drawLetters(cursorImage, font, "\nHeight : ");
-    char * height_string = (char *) kAlloc(sizeof (char) * 14);
-    itoa(img.height, height_string);
-    drawLetters(cursorImage, font, height_string);
-
-    drawLetters(cursorImage, font, "\nColor : ");
-    char * color_string = (char *) kAlloc(sizeof (char) * 14);
-    itoa(img.colorLevel, color_string);
-    drawLetters(cursorImage, font, color_string);
-
-    drawLetters(cursorImage, font, "\n\n");
-
-    displayImage(img, cursorImage->cursor_x, cursorImage->cursor_y);
+    for (;;) {
+        for (uint8_t i=0; i<4; ++i) {
+            draw(10, 90, divide32(getResolutionX(), 2) - 5, getResolutionY() - 5, 0, 0, 0);
+            displayImage(img[i], 10, 90, divide32(getResolutionX(), 2) - 10, getResolutionY() - 10);
+            uint32_t sleep = 0;
+            for (sleep = 0; sleep < 1000000; sleep++);
+        }
+    }
 }
 
 void kmain(void) {
@@ -122,7 +120,7 @@ void kmain(void) {
     // Creation des processus
     create_process((func_t*) & display_process_top_info, PP_HIGH);
     create_process((func_t*) & display_process_left_image, PP_HIGH);
-    create_process((func_t*) & display_process_right_top_text, PP_MEDIUM);
+    create_process((func_t*) & display_process_right_top_text, PP_LOW);
     create_process((func_t*) & display_process_right_bottom_keyboard, PP_MEDIUM);
 
     // Initialisation du timer matériel pour les IRQ
