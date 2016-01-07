@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "sched.h"
 
+
+
 // Macros & Constants ----------------------------------------------------------------------
 #define FRAME_SIZE 4096  // En Octet = 4Ko
 
@@ -36,7 +38,7 @@
 #define PRIVILEGES_FAULT	0b1111
 
 // Fonctions ------------------------------------------
-
+#ifdef USE_VMEM
 // Memory initialization -----------
 /**
  *	Initialise la memoire physique
@@ -62,10 +64,6 @@ void configure_mmu_C(uint32_t translation_base);
  *	Initialise la memoire virtuelle
  */
 uint32_t vmem_init(void);
-
-// Data handler
-
-void data_handler(void);
 
 // Memory debug --------------------
 /**
@@ -108,6 +106,11 @@ void sys_munmap(void * addr, uint32_t size);
  */
 void do_sys_munmap(pcb_s * context);
 
+#endif // USE_VMEM
+
+// Data handler
+
+void data_handler(void);
 
 #endif //VMEM_H
 

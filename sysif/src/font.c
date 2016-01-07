@@ -14,10 +14,18 @@
 
 FontTable* initFont()
 {
+#ifdef USE_VMEM
     FontTable* font = (FontTable *)sys_mmap(sizeof (FontTable));
     font->values = (char **)sys_mmap(FONT_TABLE_SIZE * sizeof (char *)); // ASCII Size Table
     font->widths = (uint32_t *)sys_mmap(FONT_TABLE_SIZE * sizeof (uint32_t)); // ASCII Size Table
     font->heights = (uint32_t *)sys_mmap(FONT_TABLE_SIZE * sizeof (uint32_t)); // ASCII Size Table
+#else
+    FontTable* font = (FontTable *)kAlloc(sizeof (FontTable));
+    font->values = (char **)kAlloc(FONT_TABLE_SIZE * sizeof (char *)); // ASCII Size Table
+    font->widths = (uint32_t *)kAlloc(FONT_TABLE_SIZE * sizeof (uint32_t)); // ASCII Size Table
+    font->heights = (uint32_t *)kAlloc(FONT_TABLE_SIZE * sizeof (uint32_t)); // ASCII Size Table
+#endif
+    
 
     for (uint32_t i = 0; i < FONT_TABLE_SIZE; ++i) {
         font->values[i] = char_font_63_bits;
@@ -328,7 +336,12 @@ FontTable* initFont()
 
 FontCursor * initCursor(uint32_t cur_min_x, uint32_t cur_min_y, uint32_t cur_max_x, uint32_t cur_max_y)
 {
+#ifdef USE_VMEM
     FontCursor* cursor = (FontCursor *)sys_mmap(sizeof (FontCursor));
+#else
+    FontCursor* cursor = (FontCursor *)kAlloc(sizeof (FontCursor));
+#endif
+    
     cursor->max_x = cur_max_x;
     cursor->max_y = cur_max_y;
     cursor->min_x = cur_min_x;
@@ -336,9 +349,16 @@ FontCursor * initCursor(uint32_t cur_min_x, uint32_t cur_min_y, uint32_t cur_max
     cursor->cursor_x = cur_min_x;
     cursor->cursor_y = cur_min_y;
 
+#ifdef USE_VMEM
     cursor->buffer = (CursorBuffer *)sys_mmap(sizeof (CursorBuffer));
     cursor->buffer->bufferX = (uint32_t *)sys_mmap(sizeof (uint32_t)*CURSOR_BUFFER_SIZE);
     cursor->buffer->bufferY = (uint32_t *)sys_mmap(sizeof (uint32_t)*CURSOR_BUFFER_SIZE);
+#else
+    cursor->buffer = (CursorBuffer *)kAlloc(sizeof (CursorBuffer));
+    cursor->buffer->bufferX = (uint32_t *)kAlloc(sizeof (uint32_t)*CURSOR_BUFFER_SIZE);
+    cursor->buffer->bufferY = (uint32_t *)kAlloc(sizeof (uint32_t)*CURSOR_BUFFER_SIZE);
+#endif
+
     cursor->buffer->bufferLogicSize = 0;
     cursor->buffer->iBuffer = 0;
 

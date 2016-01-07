@@ -72,10 +72,6 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
     // le PCB est stocke dans l'espace memoire reserve au noyau donc on garde kAlloc ici
     pcb_s * pcb = (pcb_s *) kAlloc(sizeof(pcb_s)); 
 
-
-    // initialisation de la table de page du processus
-    pcb->page_table = (uint32_t*)init_ps_translation_table();
-
     pcb->lr_user = (func_t *) &start_current_process;
     pcb->lr_svc = (func_t *) &start_current_process;
 
@@ -84,9 +80,13 @@ pcb_s * create_process(func_t* entry, PROCESS_PRIORITY priority)
     pcb->priority = priority;
     
 #ifdef USE_VMEM
+    // initialisation de la table de page du processus
+    pcb->page_table = (uint32_t*)init_ps_translation_table();
     // On alloue dans la zone mémoire kernel avec kAlloc
     pcb->sp_start = (uint32_t *) vmem_alloc_in_userland(pcb, SIZE_STACK_PROCESS);
 #else
+    // Null translation base pour la table des pages
+    pcb->page_table = (uint32_t*)NULL;
     // On alloue dans la zone mémoire kernel avec kAlloc
     pcb->sp_start = (uint32_t*) kAlloc(SIZE_STACK_PROCESS);
 #endif

@@ -4,6 +4,8 @@
 #include "hw.h"
 #include "math.h"
 
+#ifdef USE_VMEM
+
 // Globales -------------------------------------------
 /*  
     Adresse de la table des pages du kernel
@@ -512,6 +514,8 @@ void configure_mmu_C(uint32_t translation_base)
      */
     __asm volatile("mcr p15, 0, %[r], c3, c0, 0" : : [r] "r" (0x3));
 }
+
+#endif //USE_VMEM
 
 // -----------------------------------------------------------------------------------------------
 // ------------------------------------------ DATA HANDLER ---------------------------------------

@@ -31,8 +31,13 @@ void display_process_top_info() {
     // Affichage text haut gauche
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
     drawLetters(cursor, font, "Hello World !\n");
+#ifdef USE_VMEM
     char * resolutionX = (char *) sys_mmap(sizeof (char) * 12);
     char * resolutionY = (char *) sys_mmap(sizeof (char) * 12);
+#else
+    char * resolutionX = (char *) kAlloc(sizeof (char) * 12);
+    char * resolutionY = (char *) kAlloc(sizeof (char) * 12);
+#endif
     itoa(getResolutionX() + 1, resolutionX);
     itoa(getResolutionY() + 1, resolutionY);
     drawLetters(cursor, font, "Resolution : ");
@@ -49,7 +54,12 @@ void display_process_top_info() {
 
     // Affichage infos clavier
     FontCursor * cursorClavierTime = initCursor(divide32(getResolutionX(), 2) + 10, 10, getResolutionX() - 10, 60);
+#ifdef USE_VMEM
     char * nbClavierString = (char *) sys_mmap(sizeof (char) * 14);
+#else
+    char * nbClavierString = (char *) kAlloc(sizeof (char) * 14);
+#endif
+
     uint32_t nbClavier = getNbKeyboard();
     itoa(nbClavier, nbClavierString);
     drawLetters(cursorClavierTime, font, "Nb de claviers : ");
@@ -110,7 +120,7 @@ void kmain(void) {
     usb_init();
 
     // Initialisation du scheduler
-    sched_init(SP_PRIORITY);
+    sched_init(SP_SIMPLE);
 
     // Initialisation des LEDs ...
     hw_init();

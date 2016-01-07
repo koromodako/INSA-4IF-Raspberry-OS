@@ -8,10 +8,17 @@
 #define NB_SAVED_REGISTERS 13
 #define SIZE_STACK_PROCESS 10240 // En Octet = 10Ko
 
+#ifdef USE_VMEM
 #define FREE_PS(cell) \
     vmem_free((uint8_t*)(cell->pcb->sp_start), (cell->pcb), SIZE_STACK_PROCESS); \
     kFree((void*)(cell->pcb), sizeof(pcb_s)); \
     kFree((void*)(cell), sizeof(SimpleCell))
+#else
+#define FREE_PS(cell) \
+    kFree((void*)(cell->pcb->sp_start), SIZE_STACK_PROCESS); \
+    kFree((void*)(cell->pcb), sizeof(pcb_s)); \
+    kFree((void*)(cell), sizeof(SimpleCell))
+#endif
 
 
 // Types et structures ---------------------------------------------------------
