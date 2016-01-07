@@ -65,18 +65,19 @@ void display_process_right_top_text() {
     }
 }
 
-
 void display_process_right_bottom_keyboard() {
     FontCursor * cursorLeft = initCursor(divide32(getResolutionX(), 2) + 10, divide32(getResolutionY(), 2) + 10, getResolutionX() - 10, getResolutionY() - 10);
-    for (;;) {
-        KeyboardUpdate();
-        char c = KeyboardGetChar();
-        if (c != 0) {
-            drawLetter(cursorLeft, font, c);
+    drawLetters(cursorLeft, font, "Raspberry-OS:~$ ");
+    if (getNbKeyboard() > 0) {
+        for (;;) {
+            KeyboardUpdate();
+            char c = KeyboardGetChar();
+            if (c != 0) {
+                drawLetter(cursorLeft, font, c);
+            }
         }
     }
 }
-
 
 void display_process_left_image() {
     FontCursor * cursorImage = initCursor(10, 90, divide32(getResolutionX(), 2) - 10, getResolutionY() - 10);
@@ -110,7 +111,7 @@ void kmain(void) {
     usb_init();
 
     // Initialisation du scheduler
-    sched_init(SP_SIMPLE);
+    sched_init(SP_PRIORITY);
 
     // Initialisation des LEDs ...
     hw_init();

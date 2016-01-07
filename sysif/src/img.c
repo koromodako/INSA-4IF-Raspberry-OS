@@ -1,6 +1,7 @@
 #include "img.h"
 #include "util.h"
 #include "fb.h"
+#include "math.h"
 
 #include <stdint.h>
 
@@ -58,14 +59,15 @@ void displayImage(Image img, uint32_t start_x, uint32_t start_y)
     {
         for (uint32_t i = 0; i < img.width; ++i)
         {
-            // TODO ajuster la couleur en fonction du niveau
-            uint32_t red = (uint32_t) *it;
-            it++;
-            uint32_t green  = (uint32_t) *it;
-            it++;
-            uint32_t blue = (uint32_t) *it;
-            it++;
-            put_pixel_RGB24(start_x + i, start_y + j, red, green, blue);
+            if (img.type == PPM) {
+                uint32_t red = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
+                it++;
+                uint32_t green = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
+                it++;
+                uint32_t blue = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
+                it++;
+                put_pixel_RGB24(start_x + i, start_y + j, red, green, blue);
+            }
         }
     }
 }
