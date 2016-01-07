@@ -66,6 +66,15 @@ typedef enum {
 } SCHEDULING_POLICY;
 
 // Convertir entier en string
-char* itoa(int i, char b[]);
+char* itoa(uint64_t i, char b[]);
+
+// Convertir string en entier
+uint64_t atoi(const char *c);
+
+// Retourne l'adresse dans str du premier fnd trouvé, sinon stop à '\0'
+char* getNextChar(char* str, char fnd);
+
+// Return true if the c if a digit
+uint8_t isdigit(char c);
 
 #endif

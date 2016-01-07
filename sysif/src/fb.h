@@ -48,6 +48,8 @@ static inline uint32_t mmio_read(uint32_t reg) {
  * Framebuffer functions
  */
 
+#define NB_COLOR_LEVEL 255
+
 int FramebufferInitialize();
 
 void put_pixel_RGB24(uint32_t x, uint32_t y, uint8_t red, uint8_t green, uint8_t blue);
