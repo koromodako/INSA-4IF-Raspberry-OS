@@ -9,6 +9,7 @@
 #define FONT_TABLE_START 33
 #define FONT_TABLE_END 126
 #define SIZE_OF_BLOCK 8
+#define CURSOR_BUFFER_SIZE 10
 
 FontTable* initFont()
 {
@@ -333,6 +334,13 @@ FontCursor * initCursor(uint32_t cur_min_x, uint32_t cur_min_y, uint32_t cur_max
     cursor->min_y = cur_min_y;
     cursor->cursor_x = cur_min_x;
     cursor->cursor_y = cur_min_y;
+
+    cursor->buffer = (CursorBuffer *)kAlloc(sizeof (CursorBuffer));
+    cursor->buffer->bufferX = (uint32_t *)kAlloc(sizeof (uint32_t)*CURSOR_BUFFER_SIZE);
+    cursor->buffer->bufferY = (uint32_t *)kAlloc(sizeof (uint32_t)*CURSOR_BUFFER_SIZE);
+    cursor->buffer->bufferLogicSize = 0;
+    cursor->buffer->iBuffer = 0;
+
     return cursor;
 }
 
@@ -343,22 +351,73 @@ void checkCursor(FontCursor * cursor, FontTable * font)
         cursor->cursor_x = cursor->min_x;
     }
     if (cursor->cursor_y > cursor->max_y - font->max_height) {
+
         draw(cursor->min_x, cursor->min_y, cursor->max_x, cursor->max_y, 0, 0, 0);
+
         cursor->cursor_x = cursor->min_x;
         cursor->cursor_y = cursor->min_y;
+
+        cursor->buffer->bufferLogicSize = 0; // On vide le buffer
     }
 }
 
-void advanceCursor(FontCursor * cursor, FontTable * font, uint32_t width)
+void goForwardCursor(FontCursor * cursor, FontTable * font, uint32_t width)
 {
+    // TODO Refactoring de ça
+    cursor->buffer->bufferX[cursor->buffer->iBuffer] = cursor->cursor_x;
+    cursor->buffer->bufferY[cursor->buffer->iBuffer] = cursor->cursor_y;
+    cursor->buffer->iBuffer++;
+    if (cursor->buffer->iBuffer >= CURSOR_BUFFER_SIZE) {
+        cursor->buffer->iBuffer = 0;
+    }
+    cursor->buffer->bufferLogicSize++;
+
     cursor->cursor_x += width; // Letter spacing
     checkCursor(cursor, font);
+}
+
+void goBackCursor(FontCursor * cursor, FontTable * font)
+{
+    // Si le buffer est vide, rien n'est à effacer
+    if (cursor->buffer->bufferLogicSize == 0) {
+        return;
+    }
+    else {
+        cursor->buffer->bufferLogicSize--;
+    }
+
+    CursorBuffer * buffer = cursor->buffer;
+    if (cursor->buffer->iBuffer == 0) {
+        cursor->buffer->iBuffer = CURSOR_BUFFER_SIZE;
+    }
+    else {
+        cursor->buffer->iBuffer--;
+    }
+    uint32_t startX = buffer->bufferX[buffer->iBuffer];
+    uint32_t startY = buffer->bufferY[buffer->iBuffer];
+
+    if (startY == cursor->cursor_y) { // Même ligne
+        draw(startX, startY, cursor->cursor_x, cursor->cursor_y + font->max_height, 0, 0, 0);
+    } else {
+        draw(startX, startY, cursor->max_x, startY + font->max_height, 0, 0, 0); // Fin ligne du haut
+    }
+
+    cursor->cursor_x = buffer->bufferX[buffer->iBuffer];
+    cursor->cursor_y = buffer->bufferY[buffer->iBuffer];
 }
 
 void drawLetter(FontCursor * cursor, FontTable * font, char letter)
 {
     uint32_t asciiValue = (uint32_t) letter;
     if (letter == '\n') { // Retour à la ligne
+        // TODO Refactoring de ça
+        cursor->buffer->bufferX[cursor->buffer->iBuffer] = cursor->cursor_x;
+        cursor->buffer->bufferY[cursor->buffer->iBuffer] = cursor->cursor_y;
+        cursor->buffer->iBuffer++;
+        if (cursor->buffer->iBuffer >= CURSOR_BUFFER_SIZE) {
+            cursor->buffer->iBuffer = 0;
+        }
+        cursor->buffer->bufferLogicSize++;
 
         cursor->cursor_y += font->max_height;
         cursor->cursor_x = cursor->min_x;
@@ -366,7 +425,15 @@ void drawLetter(FontCursor * cursor, FontTable * font, char letter)
 
     } else if (letter == ' ') { // Espace
 
-        advanceCursor(cursor, font, font->spacing_width);
+        goForwardCursor(cursor, font, font->spacing_width);
+
+    } else if (letter == '\b'){
+
+        goBackCursor(cursor, font);
+
+    } else if (letter == '\t'){
+
+        drawLetters(cursor, font, "    ");
 
     } else if (FONT_TABLE_START <= asciiValue && FONT_TABLE_END >= asciiValue) {
 
@@ -390,8 +457,10 @@ void drawLetter(FontCursor * cursor, FontTable * font, char letter)
             ++line;
         }
 
-        advanceCursor(cursor, font, widthLetter);
+        goForwardCursor(cursor, font, widthLetter);
 
+    } else {
+        drawLetter(cursor, font, '#');
     }
 }
 
