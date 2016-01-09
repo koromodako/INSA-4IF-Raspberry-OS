@@ -15,8 +15,6 @@
 #include "drivers/usb/csud/include/device/hid/keyboard.h"
 #include "vmem.h"
 
-static FontTable * font;
-
 extern unsigned char _binary_img_lena_ppm_start;
 extern unsigned char _binary_img_lena_ppm_end;
 extern unsigned char _binary_img_lena_pgm_start;
@@ -28,7 +26,10 @@ extern unsigned char _binary_img_landscape_pgm_end;
 
 void display_process_top_info() {
 
-    // Affichage text haut gauche
+    // Initialisation de la font
+    FontTable * font = initFont();
+
+    // Initialisation d'un curseur
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
     drawLetters(cursor, font, "Hello World !\n");
 #ifdef USE_VMEM
@@ -65,9 +66,16 @@ void display_process_top_info() {
     drawLetters(cursorClavierTime, font, "Nb de claviers : ");
     drawLetters(cursorClavierTime, font, nbClavierString);
     drawLetters(cursorClavierTime, font, "\n");
+
+    while(1)
+    {   sys_yield();
+    }
 }
 
 void display_process_right_top_text() {
+    // Initialisation de la font
+    FontTable * font = initFont();
+    // Initialisation d'un curseur
     FontCursor * cursorRight = initCursor(divide32(getResolutionX(), 2) + 10, 90, getResolutionX() - 10, divide32(getResolutionY(), 2) - 10);
 
     uint32_t letter = 33;
@@ -83,6 +91,9 @@ void display_process_right_top_text() {
 }
 
 void display_process_right_bottom_keyboard() {
+    // Initialisation de la font
+    FontTable * font = initFont();
+    // Initialisation d'un curseur
     FontCursor * cursorLeft = initCursor(divide32(getResolutionX(), 2) + 10, divide32(getResolutionY(), 2) + 10, getResolutionX() - 10, getResolutionY() - 10);
     drawLetters(cursorLeft, font, "Raspberry-OS:~$ ");
     if (getNbKeyboard() > 0) {
@@ -120,7 +131,7 @@ void kmain(void) {
     usb_init();
 
     // Initialisation du scheduler
-    sched_init(SP_SIMPLE);
+    sched_init(SP_PRIORITY);
 
     // Initialisation des LEDs ...
     hw_init();
@@ -140,8 +151,6 @@ void kmain(void) {
 
     // switch CPU to USER mode
     SWITCH_TO_USER_MODE;
-
-    font = initFont();
 
     while (1) {
         sys_yield();
