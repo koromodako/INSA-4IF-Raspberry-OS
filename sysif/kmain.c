@@ -26,7 +26,6 @@ extern unsigned char _binary_img_landscape_pgm_start;
 extern unsigned char _binary_img_landscape_pgm_end;
 
 void display_process_top_info() {
-    FontTable * font = initFont();
     // Initialisation de la font
     FontTable * font = initFont();
 
@@ -69,7 +68,6 @@ void display_process_top_info() {
     drawLetters(cursorClavierTime, font, "\n");
     while (1) {
         sys_yield();
-    }
     }
 }
 
