@@ -38,7 +38,7 @@
 #define PRIVILEGES_FAULT	0b1111
 
 // Fonctions ------------------------------------------
-#ifdef USE_VMEM
+
 // Memory initialization -----------
 /**
  *	Initialise la memoire physique
@@ -105,8 +105,6 @@ void sys_munmap(void * addr, uint32_t size);
  *	Appel noyau pour liberer size octet a partir de addr
  */
 void do_sys_munmap(pcb_s * context);
-
-#endif // USE_VMEM
 
 // Data handler
 

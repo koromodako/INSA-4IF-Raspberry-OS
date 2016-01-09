@@ -7,6 +7,7 @@
 #include "simple_sched.h"
 #include "priority_sched.h"
 #include "vmem.h"
+#include "config.h"
 
 // Globales -----------------------------------------------------
 /* 
