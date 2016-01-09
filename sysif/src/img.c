@@ -75,27 +75,35 @@ void displayImage(Image img, uint32_t start_x, uint32_t start_y, uint32_t limit_
         {
             if (it == img.end) {
                 return;
-            } else if (start_x + i > limit_x) {
-                break;
             }
             switch (img.type)
             {
                 case PPM:
                 {
-                    uint32_t red = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
-                    it++;
-                    uint32_t green = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
-                    it++;
-                    uint32_t blue = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
-                    it++;
-                    put_pixel_RGB24(start_x + i, start_y + j, red, green, blue);
+                    if (start_x + i > limit_x) {
+                        it++;
+                        it++;
+                        it++;
+                    } else {
+                        uint32_t red = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
+                        it++;
+                        uint32_t green = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
+                        it++;
+                        uint32_t blue = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
+                        it++;
+                        put_pixel_RGB24(start_x + i, start_y + j, red, green, blue);
+                    }
                     break;
                 }
                 case PGM:
                 {
-                    uint32_t gray = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
-                    it++;
-                    put_pixel_RGB24(start_x + i, start_y + j, gray, gray, gray);
+                    if (start_x + i > limit_x) {
+                        it++;
+                    } else {
+                        uint32_t gray = divide32(((uint32_t) *it) * NB_COLOR_LEVEL, img.colorLevel);
+                        it++;
+                        put_pixel_RGB24(start_x + i, start_y + j, gray, gray, gray);
+                    }
                     break;
                 }
                 default:
