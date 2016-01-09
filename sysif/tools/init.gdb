@@ -22,12 +22,14 @@ b *data_handler
 #b *sys_mmap
 #b *sys_munmap
 
-b display_process_top_info
-b display_process_right_top_text
-b display_process_right_bottom_keyboard
-b display_process_left_image
+#b display_process_top_info
+#b display_process_right_top_text
+#b display_process_right_bottom_keyboard
+#b display_process_left_image
 
-b create_process
+b initCursor
+
+#b create_process
 b kmain
 #b vmem_alloc_in_userland
 

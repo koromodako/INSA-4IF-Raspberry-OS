@@ -1,3 +1,4 @@
+#include "config.h"
 #include <stdint.h>
 #include "util.h"
 #include "sched.h"
@@ -15,8 +16,6 @@
 #include "drivers/usb/csud/include/device/hid/keyboard.h"
 #include "vmem.h"
 
-static FontTable * font;
-
 extern unsigned char _binary_img_lena_ppm_start;
 extern unsigned char _binary_img_lena_ppm_end;
 extern unsigned char _binary_img_lena_pgm_start;
@@ -27,7 +26,7 @@ extern unsigned char _binary_img_landscape_pgm_start;
 extern unsigned char _binary_img_landscape_pgm_end;
 
 void display_process_top_info() {
-
+    FontTable * font = initFont();
     // Affichage text haut gauche
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
     drawLetters(cursor, font, "Hello World !\n");
@@ -65,9 +64,13 @@ void display_process_top_info() {
     drawLetters(cursorClavierTime, font, "Nb de claviers : ");
     drawLetters(cursorClavierTime, font, nbClavierString);
     drawLetters(cursorClavierTime, font, "\n");
+    while (1) {
+        sys_yield();
+    }
 }
 
 void display_process_right_top_text() {
+    FontTable * font = initFont();
     FontCursor * cursorRight = initCursor(divide32(getResolutionX(), 2) + 10, 90, getResolutionX() - 10, divide32(getResolutionY(), 2) - 10);
 
     uint32_t letter = 33;
@@ -77,12 +80,13 @@ void display_process_right_top_text() {
          if (letter > 126) {
              letter = 33;
          }
-         uint32_t sleep = 0;
-         for (sleep = 0; sleep < 100000; sleep++);
+         //uint32_t sleep = 0;
+         //for (sleep = 0; sleep < 100000; sleep++);
     }
 }
 
 void display_process_right_bottom_keyboard() {
+    FontTable * font = initFont();
     FontCursor * cursorLeft = initCursor(divide32(getResolutionX(), 2) + 10, divide32(getResolutionY(), 2) + 10, getResolutionX() - 10, getResolutionY() - 10);
     drawLetters(cursorLeft, font, "Raspberry-OS:~$ ");
     if (getNbKeyboard() > 0) {
@@ -93,6 +97,9 @@ void display_process_right_bottom_keyboard() {
                 drawLetter(cursorLeft, font, c);
             }
         }
+    }
+    while (1) {
+        sys_yield();
     }
 }
 
@@ -108,8 +115,8 @@ void display_process_left_image() {
         for (uint8_t i=0; i<4; ++i) {
             draw(10, 90, divide32(getResolutionX(), 2) - 5, getResolutionY() - 5, 0, 0, 0);
             displayImage(img[i], 10, 90, divide32(getResolutionX(), 2) - 10, getResolutionY() - 10);
-            uint32_t sleep = 0;
-            for (sleep = 0; sleep < 1000000; sleep++);
+            //uint32_t sleep = 0;
+            //for (sleep = 0; sleep < 1000000; sleep++);
         }
     }
 }
@@ -117,22 +124,22 @@ void display_process_left_image() {
 void kmain(void) {
 
     // Initialisation de l'USB
-    usb_init();
+    //usb_init();
 
     // Initialisation du scheduler
     sched_init(SP_SIMPLE);
 
     // Initialisation des LEDs ...
-    hw_init();
+    //hw_init();
 
     // Initialisation de l'affichage
     FramebufferInitialize();
 
     // Creation des processus
     create_process((func_t*) & display_process_top_info, PP_HIGH);
-    create_process((func_t*) & display_process_left_image, PP_HIGH);
+    //create_process((func_t*) & display_process_left_image, PP_HIGH);
     create_process((func_t*) & display_process_right_top_text, PP_LOW);
-    create_process((func_t*) & display_process_right_bottom_keyboard, PP_MEDIUM);
+    //create_process((func_t*) & display_process_right_bottom_keyboard, PP_MEDIUM);
 
     // Initialisation du timer materiel pour les IRQ
     timer_init();
@@ -140,8 +147,6 @@ void kmain(void) {
 
     // switch CPU to USER mode
     SWITCH_TO_USER_MODE;
-
-    font = initFont();
 
     while (1) {
         sys_yield();

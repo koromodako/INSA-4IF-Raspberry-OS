@@ -7,7 +7,7 @@
 /* 
 	Commentez la ligne suivante si vous ne voulez pas utiliser la memoire virtuelle
 */ 
-//#define USE_VMEM
+#define USE_VMEM
 /* 
 	Commentez la ligne suivante si vous ne voulez pas voir les logs de l'OS 
 */

@@ -5,6 +5,7 @@
 #include "fb.h"
 #include "math.h"
 #include "vmem.h"
+#include "config.h"
 
 #define FONT_TABLE_SIZE 128
 #define FONT_TABLE_START 33
@@ -25,7 +26,7 @@ FontTable* initFont()
     font->widths = (uint32_t *)kAlloc(FONT_TABLE_SIZE * sizeof (uint32_t)); // ASCII Size Table
     font->heights = (uint32_t *)kAlloc(FONT_TABLE_SIZE * sizeof (uint32_t)); // ASCII Size Table
 #endif
-    
+
 
     for (uint32_t i = 0; i < FONT_TABLE_SIZE; ++i) {
         font->values[i] = char_font_63_bits;
@@ -341,7 +342,7 @@ FontCursor * initCursor(uint32_t cur_min_x, uint32_t cur_min_y, uint32_t cur_max
 #else
     FontCursor* cursor = (FontCursor *)kAlloc(sizeof (FontCursor));
 #endif
-    
+
     cursor->max_x = cur_max_x;
     cursor->max_y = cur_max_y;
     cursor->min_x = cur_min_x;
