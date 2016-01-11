@@ -26,6 +26,14 @@ CFLAGS_QEMU=$(CFLAGS_ALL) -DQEMU
 # options à passer au compilateur C
 CFLAGS_STD=$(CFLAGS_ALL)
 
+#### Demos #####################################################################
+
+demo-1:
+	make -B KMAIN=./kmain-demo-1.c -C . kernel_for_qemu
+
+demo-1-sd:
+	make -B KMAIN=./kmain-demo-1.c -C . put_img_in_sdcard
+
 
 #### Variables calculées #######################################################
 
