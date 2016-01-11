@@ -30,6 +30,7 @@ CFLAGS_STD=$(CFLAGS_ALL)
 
 demo-1:
 	make -B KMAIN=./kmain-demo-1.c -C . kernel_for_qemu
+	make -C $(TOOLSDIR)/
 
 demo-1-sd:
 	make -B KMAIN=./kmain-demo-1.c -C . put_img_in_sdcard
