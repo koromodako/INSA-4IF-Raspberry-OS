@@ -35,6 +35,12 @@ demo-1:
 demo-1-sd:
 	make -B KMAIN=./kmain-demo-1.c -C . put_img_in_sdcard
 
+demo-3:
+	make -B KMAIN=./kmain-demo-3.c -C . kernel_for_qemu
+	make -C $(TOOLSDIR)/
+
+demo-3-sd:
+	make -B KMAIN=./kmain-demo-3.c -C . put_img_in_sdcard
 
 #### Variables calculées #######################################################
 
