@@ -9,7 +9,7 @@
 #define FONT_TABLE_START 33
 #define FONT_TABLE_END 126
 #define SIZE_OF_BLOCK 8
-#define CURSOR_BUFFER_SIZE 10
+#define CURSOR_BUFFER_SIZE 100
 
 FontTable* initFont()
 {

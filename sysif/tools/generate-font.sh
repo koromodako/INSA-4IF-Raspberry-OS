@@ -6,7 +6,7 @@ command -v convert >/dev/null 2>&1 || { echo >&2 "imagemagick n'est pas install�
 # Graphics Magick
 command -v gm >/dev/null 2>&1 || { echo >&2 "graphics magick n'est pas installé, il est alors impossible de générer la police demandée. Essayer 'sudo apt-get install graphicsmagick'"; exit 1; }
 
-FONT_SIZE=16
+FONT_SIZE=30
 FONT_NAME=Courier-Regular
 
 ASCII_START=32

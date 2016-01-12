@@ -55,7 +55,7 @@ void display_process_left_image() {
 #ifdef QEMU
             for (sleep = 0; sleep < 300000000; sleep++);
 #else
-            for (sleep = 0; sleep < 1000000; sleep++);
+            for (sleep = 0; sleep < 10000000; sleep++);
 #endif
         }
     }

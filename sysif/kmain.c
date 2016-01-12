@@ -16,20 +16,33 @@
 
 static FontTable * font;
 
-extern unsigned char _binary_img_lena_ppm_start;
-extern unsigned char _binary_img_lena_ppm_end;
-extern unsigned char _binary_img_lena_pgm_start;
-extern unsigned char _binary_img_lena_pgm_end;
-extern unsigned char _binary_img_landscape_ppm_start;
-extern unsigned char _binary_img_landscape_ppm_end;
-extern unsigned char _binary_img_landscape_pgm_start;
-extern unsigned char _binary_img_landscape_pgm_end;
+extern unsigned char _binary_img_1_ppm_start;
+extern unsigned char _binary_img_1_ppm_end;
+extern unsigned char _binary_img_1_pgm_start;
+extern unsigned char _binary_img_1_pgm_end;
+
+extern unsigned char _binary_img_2_ppm_start;
+extern unsigned char _binary_img_2_ppm_end;
+extern unsigned char _binary_img_2_pgm_start;
+extern unsigned char _binary_img_2_pgm_end;
+
+extern unsigned char _binary_img_3_ppm_start;
+extern unsigned char _binary_img_3_ppm_end;
+extern unsigned char _binary_img_3_pgm_start;
+extern unsigned char _binary_img_3_pgm_end;
+
+extern unsigned char _binary_img_4_ppm_start;
+extern unsigned char _binary_img_4_ppm_end;
+extern unsigned char _binary_img_4_pgm_start;
+extern unsigned char _binary_img_4_pgm_end;
+
+extern unsigned char _binary_img_boot_ppm_start;
+extern unsigned char _binary_img_boot_ppm_end;
 
 void display_process_top_info() {
 
     // Affichage text haut gauche
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
-    drawLetters(cursor, font, "Hello World !\n");
     char * resolutionX = (char *) kAlloc(sizeof (char) * 12);
     char * resolutionY = (char *) kAlloc(sizeof (char) * 12);
     itoa(getResolutionX() + 1, resolutionX);
@@ -47,7 +60,7 @@ void display_process_top_info() {
     drawLine(divide32(getResolutionX(), 2) + 10, divide32(getResolutionY(), 2), getResolutionX() - 10, divide32(getResolutionY(), 2)); // Horizontal : Milieu de la droite
 
     // Affichage infos clavier
-    FontCursor * cursorClavierTime = initCursor(divide32(getResolutionX(), 2) + 10, 10, getResolutionX() - 10, 60);
+    FontCursor * cursorClavierTime = initCursor(divide32(getResolutionX(), 2) + 10, 10, getResolutionX() - 10, getResolutionY());
     char * nbClavierString = (char *) kAlloc(sizeof (char) * 14);
     uint32_t nbClavier = getNbKeyboard();
     itoa(nbClavier, nbClavierString);
@@ -87,18 +100,27 @@ void display_process_right_bottom_keyboard() {
 
 void display_process_left_image() {
     Image img[] = {
-            loadImage(PPM, &_binary_img_lena_pgm_start, &_binary_img_lena_pgm_end),
-            loadImage(PPM, &_binary_img_lena_ppm_start, &_binary_img_lena_ppm_end),
-            loadImage(PPM, &_binary_img_landscape_pgm_start, &_binary_img_landscape_pgm_end),
-            loadImage(PPM, &_binary_img_landscape_ppm_start, &_binary_img_landscape_ppm_end)
+            loadImage(PPM, &_binary_img_1_pgm_start, &_binary_img_1_pgm_end),
+            loadImage(PPM, &_binary_img_2_pgm_start, &_binary_img_2_pgm_end),
+            loadImage(PPM, &_binary_img_3_pgm_start, &_binary_img_3_pgm_end),
+            loadImage(PPM, &_binary_img_4_pgm_start, &_binary_img_4_pgm_end),
+
+            loadImage(PPM, &_binary_img_1_ppm_start, &_binary_img_1_ppm_end),
+            loadImage(PPM, &_binary_img_2_ppm_start, &_binary_img_2_ppm_end),
+            loadImage(PPM, &_binary_img_3_ppm_start, &_binary_img_3_ppm_end),
+            loadImage(PPM, &_binary_img_4_ppm_start, &_binary_img_4_ppm_end)
     };
 
     for (;;) {
-        for (uint8_t i=0; i<4; ++i) {
+        for (uint8_t i=0; i<8; ++i) {
             draw(10, 90, divide32(getResolutionX(), 2) - 5, getResolutionY() - 5, 0, 0, 0);
             displayImage(img[i], 10, 90, divide32(getResolutionX(), 2) - 10, getResolutionY() - 10);
-            uint32_t sleep = 0;
-            for (sleep = 0; sleep < 1000000; sleep++);
+            uint64_t sleep = 0;
+#ifdef QEMU
+            for (sleep = 0; sleep < 300000000; sleep++);
+#else
+            for (sleep = 0; sleep < 10000000; sleep++);
+#endif
         }
     }
 }
@@ -117,11 +139,26 @@ void kmain(void) {
     // Initialisation de l'affichage
     FramebufferInitialize();
 
+    displayImage(
+            loadImage(PPM, &_binary_img_boot_ppm_start, &_binary_img_boot_ppm_end),
+            divide32((getResolutionX()+1-239),2), divide32((getResolutionY()+1-238),2), getResolutionX(), getResolutionY()
+            );
+
     // Creation des processus
     create_process((func_t*) & display_process_top_info, PP_HIGH);
     create_process((func_t*) & display_process_left_image, PP_HIGH);
     create_process((func_t*) & display_process_right_top_text, PP_LOW);
     create_process((func_t*) & display_process_right_bottom_keyboard, PP_MEDIUM);
+
+    uint64_t sleep = 0;
+#ifdef QEMU
+    for (sleep = 0; sleep < 300000000; sleep++);
+#else
+    for (sleep = 0; sleep < 10000000; sleep++);
+#endif
+    draw(0, 0, getResolutionX(), getResolutionY(), 0, 0, 0);
+
+    font = initFont();
 
     // Initialisation du timer matériel pour les IRQ
     timer_init();
@@ -129,8 +166,6 @@ void kmain(void) {
 
     // switch CPU to USER mode
     SWITCH_TO_USER_MODE;
-
-    font = initFont();
 
     while (1) {
         sys_yield();
