@@ -15,11 +15,19 @@
 #include "drivers/usb/csud/include/device/hid/keyboard.h"
 
 static FontTable * font;
+static uint32_t resolutionXValue;
+static uint32_t resolutionYValue;
+static uint32_t process1Begin;
+static uint32_t process2Begin;
+static uint32_t process3Begin;
+static uint32_t process4Begin;
+static uint32_t process5Begin;
 
 void display_process_1() {
-    FontCursor * cursorInfo = initCursor(15, 100 - font->max_height - 1, getResolutionX() - 10, 100);
+    FontCursor * cursorInfo = initCursor(15, process1Begin, getResolutionX() - 10, process1Begin + font->max_height);
     drawLetters(cursorInfo, font, "Processus 1 : Tres prioritaire");
-    FontCursor * cursorRun = initCursor(15, 100, getResolutionX() - 10, 100 + font->max_height + 1);
+    uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
+    FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
     uint32_t sleep;
     while (1) {
          drawLetter(cursorRun, font, '_');
@@ -29,9 +37,10 @@ void display_process_1() {
 }
 
 void display_process_2() {
-    FontCursor * cursorInfo = initCursor(15, 150 - font->max_height - 1, getResolutionX() - 10, 150);
+    FontCursor * cursorInfo = initCursor(15, process2Begin, getResolutionX() - 10, process2Begin + font->max_height);
     drawLetters(cursorInfo, font, "Processus 2 : Prioritaire");
-    FontCursor * cursorRun = initCursor(15, 150, getResolutionX() - 10, 150 + font->max_height + 1);
+    uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
+    FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
     uint32_t sleep;
     while (1) {
          drawLetter(cursorRun, font, '_');
@@ -41,9 +50,10 @@ void display_process_2() {
 }
 
 void display_process_3() {
-    FontCursor * cursorInfo = initCursor(15, 200 - font->max_height - 1, getResolutionX() - 10, 200);
+    FontCursor * cursorInfo = initCursor(15, process3Begin, getResolutionX() - 10, process3Begin + font->max_height);
     drawLetters(cursorInfo, font, "Processus 3 : Normal");
-    FontCursor * cursorRun = initCursor(15, 200, getResolutionX() - 10, 200 + font->max_height + 1);
+    uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
+    FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
     uint32_t sleep;
     while (1) {
          drawLetter(cursorRun, font, '_');
@@ -53,9 +63,10 @@ void display_process_3() {
 }
 
 void display_process_4() {
-    FontCursor * cursorInfo = initCursor(15, 250 - font->max_height - 1, getResolutionX() - 10, 250);
+    FontCursor * cursorInfo = initCursor(15, process4Begin, getResolutionX() - 10, process4Begin + font->max_height);
     drawLetters(cursorInfo, font, "Processus 4 : Peu prioritaire");
-    FontCursor * cursorRun = initCursor(15, 250, getResolutionX() - 10, 250 + font->max_height + 1);
+    uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
+    FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
     uint32_t sleep;
     while (1) {
          drawLetter(cursorRun, font, '_');
@@ -65,9 +76,10 @@ void display_process_4() {
 }
 
 void display_process_5() {
-    FontCursor * cursorInfo = initCursor(15, 300 - font->max_height - 1, getResolutionX() - 10, 300);
+    FontCursor * cursorInfo = initCursor(15, process5Begin, getResolutionX() - 10, process5Begin + font->max_height);
     drawLetters(cursorInfo, font, "Processus 5 : Tres peu prioritaire");
-    FontCursor * cursorRun = initCursor(15, 300, getResolutionX() - 10, 300 + font->max_height + 1);
+    uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
+    FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
     uint32_t sleep;
     while (1) {
          drawLetter(cursorRun, font, '_');
@@ -78,6 +90,7 @@ void display_process_5() {
 
 void kmain(void) {
 
+    //SCHEDULING_POLICY policy = SP_PRIORITY;
     SCHEDULING_POLICY policy = SP_SIMPLE;
 
     // Initialisation du scheduler
@@ -106,16 +119,17 @@ void kmain(void) {
     font = initFont();
 
     // Affichage text haut gauche
-    uint32_t resolutionXValue = getResolutionX();
-    uint32_t resolutionYValue = getResolutionY();
+    resolutionXValue = getResolutionX();
+    resolutionYValue = getResolutionY();
     FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
-    drawLetters(cursor, font, "Test Ordonnancement : ");
+    drawLetters(cursor, font, "Test : ");
     if (policy == SP_SIMPLE) {
         drawLetters(cursor, font, "Round-robin");
     } else {
         drawLetters(cursor, font, "Files de priorites");
     }
     drawLetters(cursor, font, "\n");
+/*
     char * resolutionX = (char *) kAlloc(sizeof (char) * 12);
     char * resolutionY = (char *) kAlloc(sizeof (char) * 12);
     itoa(resolutionXValue + 1, resolutionX);
@@ -125,11 +139,17 @@ void kmain(void) {
     drawLetters(cursor, font, "x");
     drawLetters(cursor, font, resolutionY);
     drawLetters(cursor, font, "\n");
-
+*/
     // Affichage séparateurs
-    drawLine(10, 70, resolutionXValue - 10, 70); // Horizontal : Entre les infos du haut et le reste
-    drawLine(10, 80, 10, resolutionYValue - 10); // Vertical : Ligne de départ
-    drawLine(resolutionXValue - 10, 80, resolutionXValue - 10, resolutionYValue - 10); // Vertical : Ligne de fin
+    drawLine(10, cursor->cursor_y + 5, resolutionXValue - 10, cursor->cursor_y + 5); // Horizontal : Entre les infos du haut et le reste
+    drawLine(10, cursor->cursor_y + 15, 10, resolutionYValue - 10); // Vertical : Ligne de départ
+    drawLine(resolutionXValue - 10, cursor->cursor_y + 15, resolutionXValue - 10, resolutionYValue - 10); // Vertical : Ligne de fin
+
+    process1Begin = cursor->cursor_y + 25;
+    process2Begin = process1Begin + 2 * font->max_height + 20;
+    process3Begin = process2Begin + 2 * font->max_height + 20;
+    process4Begin = process3Begin + 2 * font->max_height + 20;
+    process5Begin = process4Begin + 2 * font->max_height + 20;
 
     while (1) {
         sys_yield();
