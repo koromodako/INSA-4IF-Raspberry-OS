@@ -52,7 +52,11 @@ void display_process_left_image() {
             draw(0, 0, getResolutionX(), getResolutionY(), 0, 0, 0);
             displayImage(img[i], 5, 5, getResolutionX() - 5, getResolutionY() - 5);
             uint64_t sleep = 0;
+#ifdef QEMU
             for (sleep = 0; sleep < 300000000; sleep++);
+#else
+            for (sleep = 0; sleep < 1000000; sleep++);
+#endif
         }
     }
 }

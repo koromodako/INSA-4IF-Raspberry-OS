@@ -23,17 +23,25 @@ static uint32_t process3Begin;
 static uint32_t process4Begin;
 static uint32_t process5Begin;
 
+void run(FontCursor * cursor) {
+    uint32_t sleep;
+    while (1) {
+         drawLetter(cursor, font, '_');
+         sleep = 0;
+#ifdef QEMU
+         for (sleep = 0; sleep < 10000000; sleep++);
+#else
+         for (sleep = 0; sleep < 1000000; sleep++);
+#endif
+    }
+}
+
 void display_process_1() {
     FontCursor * cursorInfo = initCursor(15, process1Begin, getResolutionX() - 10, process1Begin + font->max_height);
     drawLetters(cursorInfo, font, "Processus 1 : Tres prioritaire");
     uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
     FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
-    uint32_t sleep;
-    while (1) {
-         drawLetter(cursorRun, font, '_');
-         sleep = 0;
-         for (sleep = 0; sleep < 10000000; sleep++);
-    }
+    run(cursorRun);
 }
 
 void display_process_2() {
@@ -41,12 +49,7 @@ void display_process_2() {
     drawLetters(cursorInfo, font, "Processus 2 : Prioritaire");
     uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
     FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
-    uint32_t sleep;
-    while (1) {
-         drawLetter(cursorRun, font, '_');
-         sleep = 0;
-         for (sleep = 0; sleep < 10000000; sleep++);
-    }
+    run(cursorRun);
 }
 
 void display_process_3() {
@@ -54,12 +57,7 @@ void display_process_3() {
     drawLetters(cursorInfo, font, "Processus 3 : Normal");
     uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
     FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
-    uint32_t sleep;
-    while (1) {
-         drawLetter(cursorRun, font, '_');
-         sleep = 0;
-         for (sleep = 0; sleep < 10000000; sleep++);
-    }
+    run(cursorRun);
 }
 
 void display_process_4() {
@@ -67,25 +65,15 @@ void display_process_4() {
     drawLetters(cursorInfo, font, "Processus 4 : Peu prioritaire");
     uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
     FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
-    uint32_t sleep;
-    while (1) {
-         drawLetter(cursorRun, font, '_');
-         sleep = 0;
-         for (sleep = 0; sleep < 10000000; sleep++);
-    }
+    run(cursorRun);
 }
 
 void display_process_5() {
     FontCursor * cursorInfo = initCursor(15, process5Begin, getResolutionX() - 10, process5Begin + font->max_height);
     drawLetters(cursorInfo, font, "Processus 5 : Tres peu prioritaire");
-    uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 1;
+    uint32_t beginRun = cursorInfo->cursor_y + font->max_height + 5;
     FontCursor * cursorRun = initCursor(15, beginRun, getResolutionX() - 10, beginRun + font->max_height);
-    uint32_t sleep;
-    while (1) {
-         drawLetter(cursorRun, font, '_');
-         sleep = 0;
-         for (sleep = 0; sleep < 10000000; sleep++);
-    }
+    run(cursorRun);
 }
 
 void kmain(void) {
@@ -129,17 +117,7 @@ void kmain(void) {
         drawLetters(cursor, font, "Files de priorites");
     }
     drawLetters(cursor, font, "\n");
-/*
-    char * resolutionX = (char *) kAlloc(sizeof (char) * 12);
-    char * resolutionY = (char *) kAlloc(sizeof (char) * 12);
-    itoa(resolutionXValue + 1, resolutionX);
-    itoa(resolutionYValue + 1, resolutionY);
-    drawLetters(cursor, font, "Resolution : ");
-    drawLetters(cursor, font, resolutionX);
-    drawLetters(cursor, font, "x");
-    drawLetters(cursor, font, resolutionY);
-    drawLetters(cursor, font, "\n");
-*/
+
     // Affichage séparateurs
     drawLine(10, cursor->cursor_y + 5, resolutionXValue - 10, cursor->cursor_y + 5); // Horizontal : Entre les infos du haut et le reste
     drawLine(10, cursor->cursor_y + 15, 10, resolutionYValue - 10); // Vertical : Ligne de départ
