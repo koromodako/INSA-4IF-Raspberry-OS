@@ -14,29 +14,7 @@
 #include "syscall.h"
 #include "drivers/usb/csud/include/device/hid/keyboard.h"
 
-static FontTable * font;
-static uint32_t resolutionXValue;
-static uint32_t resolutionYValue;
-static uint32_t processBegin;
-
-void display_process_keyboard() {
-    FontCursor * cursorLeft = initCursor(10, processBegin, resolutionXValue - 10, resolutionYValue - 10);
-    drawLetters(cursorLeft, font, "Raspberry-OS:~$ ");
-    if (getNbKeyboard() > 0) {
-        for (;;) {
-            KeyboardUpdate();
-            char c = KeyboardGetChar();
-            if (c != 0) {
-                drawLetter(cursorLeft, font, c);
-            }
-        }
-    }
-}
-
 void kmain(void) {
-
-    // Initialisation de l'USB
-    usb_init();
 
     // Initialisation du scheduler
     sched_init(SP_SIMPLE);
@@ -47,24 +25,20 @@ void kmain(void) {
     // Initialisation de l'affichage
     FramebufferInitialize();
 
-    // Creation des processus
-    create_process((func_t*) & display_process_keyboard, PP_MEDIUM);
-
     // switch CPU to USER mode
     SWITCH_TO_USER_MODE;
 
-    font = initFont();
-
     // Affichage text haut gauche
-    resolutionXValue = getResolutionX();
-    resolutionYValue = getResolutionY();
-    FontCursor * cursor = initCursor(10, 10, getResolutionX(), getResolutionY());
-    drawLetters(cursor, font, "Test : Clavier\n");
+    uint32_t resolutionXValue = getResolutionX();
+    uint32_t resolutionYValue = getResolutionY();
 
     // Affichage séparateurs
-    drawLine(10, cursor->cursor_y + 5, resolutionXValue - 10, cursor->cursor_y + 5); // Horizontal : Entre les infos du haut et le reste
-
-    processBegin = cursor->cursor_y + 25;
-
-    sys_yield();
+    for(uint32_t y = 0; y * 5 < resolutionYValue; y++) {
+        if (!mod32(y, 2)) {
+            drawLine(10, y * 5, resolutionXValue - 10, y * 30);
+        } else {
+            uint32_t sleep;
+            for(sleep = 0; sleep < 100000000; sleep++);
+        }
+    }
 }
